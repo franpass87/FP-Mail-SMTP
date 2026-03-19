@@ -23,6 +23,7 @@ final class SettingsPage
     {
         add_action('admin_post_fp_fpmail_save_settings', [$this, 'handleSave']);
         add_action('wp_ajax_fp_fpmail_send_test', [$this, 'handleTestEmail']);
+        add_action('wp_ajax_fp_fpmail_regenerate_brevo_token', [$this, 'handleRegenerateBrevoToken']);
         add_action('admin_enqueue_scripts', [$this, 'enqueueAssets']);
     }
 
@@ -63,6 +64,7 @@ final class SettingsPage
             'fp_fpmail_from_name' => 'sanitize_text_field',
             'fp_fpmail_log_retention_days' => fn ($v) => max(1, min(365, absint($v))),
             'fp_fpmail_log_enabled' => fn ($v) => $v === '1' ? '1' : '0',
+            'fp_fpmail_brevo_log_enabled' => fn ($v) => $v === '1' ? '1' : '0',
         ];
 
         foreach ($fields as $key => $sanitizer) {
@@ -75,6 +77,14 @@ final class SettingsPage
         if (isset($_POST['fp_fpmail_smtp_pass']) && $_POST['fp_fpmail_smtp_pass'] !== '') {
             $pass = sanitize_text_field(wp_unslash($_POST['fp_fpmail_smtp_pass']));
             update_option('fp_fpmail_smtp_pass', base64_encode($pass));
+        }
+
+        // Brevo: genera token se abilitato e vuoto
+        if (get_option('fp_fpmail_brevo_log_enabled', '0') === '1') {
+            $token = get_option('fp_fpmail_brevo_webhook_token', '');
+            if ($token === '') {
+                update_option('fp_fpmail_brevo_webhook_token', wp_generate_password(32, true, true));
+            }
         }
 
         wp_safe_redirect(
@@ -117,6 +127,21 @@ final class SettingsPage
         }
 
         wp_send_json_error(['message' => __('Invio fallito. Controlla i log e la configurazione SMTP.', 'fp-fpmail')]);
+    }
+
+    /**
+     * AJAX: rigenera token webhook Brevo.
+     */
+    public function handleRegenerateBrevoToken(): void
+    {
+        check_ajax_referer('fp_fpmail_regenerate_brevo_token', 'nonce');
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => __('Accesso negato.', 'fp-fpmail')]);
+        }
+        $token = wp_generate_password(32, true, true);
+        update_option('fp_fpmail_brevo_webhook_token', $token);
+        $url = rest_url('fp/fpmail/v1/brevo-webhook') . '?token=' . rawurlencode($token);
+        wp_send_json_success(['token' => $token, 'url' => $url]);
     }
 
     /**
@@ -264,6 +289,53 @@ final class SettingsPage
                     </div>
                 </div>
 
+                <?php
+                $brevoEnabled = get_option('fp_fpmail_brevo_log_enabled', '0') === '1';
+                $brevoToken = get_option('fp_fpmail_brevo_webhook_token', '');
+                $brevoWebhookUrl = $brevoToken !== '' ? rest_url('fp/fpmail/v1/brevo-webhook') . '?token=' . rawurlencode($brevoToken) : '';
+                ?>
+                <div class="fpmail-card">
+                    <div class="fpmail-card-header">
+                        <div class="fpmail-card-header-left">
+                            <span class="dashicons dashicons-share"></span>
+                            <h2><?php esc_html_e('Integrazione Brevo', 'fp-fpmail'); ?></h2>
+                        </div>
+                        <span class="fpmail-badge <?php echo $brevoEnabled ? 'fpmail-badge-success' : 'fpmail-badge-neutral'; ?>">
+                            <?php echo $brevoEnabled ? '&#10003; ' . esc_html__('Attiva', 'fp-fpmail') : esc_html__('Disattiva', 'fp-fpmail'); ?>
+                        </span>
+                    </div>
+                    <div class="fpmail-card-body">
+                        <p class="description"><?php esc_html_e('Mostra nel log anche le email inviate tramite Brevo (API Transactional), incluse quelle da FP-Restaurant-Reservations, FP-Experiences, FP-Forms quando usano Brevo come canale.', 'fp-fpmail'); ?></p>
+                        <div class="fpmail-toggle-row">
+                            <div class="fpmail-toggle-info">
+                                <strong><?php esc_html_e('Abilita log eventi Brevo', 'fp-fpmail'); ?></strong>
+                                <span><?php esc_html_e('Ricevi eventi via webhook e visualizzali nel log unificato', 'fp-fpmail'); ?></span>
+                            </div>
+                            <label class="fpmail-toggle">
+                                <input type="checkbox" name="fp_fpmail_brevo_log_enabled" value="1"
+                                       <?php checked($brevoEnabled, true); ?>>
+                                <span class="fpmail-toggle-slider"></span>
+                            </label>
+                        </div>
+                        <?php if ($brevoEnabled && $brevoWebhookUrl !== '') : ?>
+                            <div class="fpmail-field" style="margin-top: 1rem;">
+                                <label><?php esc_html_e('URL Webhook da configurare in Brevo', 'fp-fpmail'); ?></label>
+                                <div class="fpmail-brevo-url-row">
+                                    <input type="text" id="fpmail-brevo-url" value="<?php echo esc_attr($brevoWebhookUrl); ?>"
+                                           readonly class="large-text is-monospace">
+                                    <button type="button" id="fpmail-brevo-copy" class="fpmail-btn fpmail-btn-secondary">
+                                        <?php esc_html_e('Copia', 'fp-fpmail'); ?>
+                                    </button>
+                                    <button type="button" id="fpmail-brevo-regenerate" class="fpmail-btn fpmail-btn-secondary">
+                                        <?php esc_html_e('Rigenera token', 'fp-fpmail'); ?>
+                                    </button>
+                                </div>
+                                <p class="fpmail-hint"><?php esc_html_e('Brevo > Transactional > Webhooks: aggiungi questo URL e seleziona gli eventi Sent, Delivered, Hard bounce, Soft bounce, Blocked, Invalid, Error.', 'fp-fpmail'); ?></p>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
                 <div class="fpmail-card">
                     <div class="fpmail-card-body">
                         <button type="submit" class="fpmail-btn fpmail-btn-primary">
@@ -328,6 +400,34 @@ final class SettingsPage
                 })
                 .finally(function() { btn.disabled = false; });
             });
+
+            var copyBtn = document.getElementById('fpmail-brevo-copy');
+            var urlInput = document.getElementById('fpmail-brevo-url');
+            var regenBtn = document.getElementById('fpmail-brevo-regenerate');
+            if (copyBtn && urlInput) {
+                copyBtn.addEventListener('click', function() {
+                    urlInput.select();
+                    document.execCommand('copy');
+                    copyBtn.textContent = '<?php echo esc_js(__('Copiato!', 'fp-fpmail')); ?>';
+                    setTimeout(function() { copyBtn.textContent = '<?php echo esc_js(__('Copia', 'fp-fpmail')); ?>'; }, 2000);
+                });
+            }
+            if (regenBtn && urlInput) {
+                regenBtn.addEventListener('click', function() {
+                    regenBtn.disabled = true;
+                    var fd = new FormData();
+                    fd.append('action', 'fp_fpmail_regenerate_brevo_token');
+                    fd.append('nonce', '<?php echo esc_js(wp_create_nonce('fp_fpmail_regenerate_brevo_token')); ?>');
+                    fetch('<?php echo esc_url(admin_url('admin-ajax.php')); ?>', { method: 'POST', body: fd, credentials: 'same-origin' })
+                    .then(function(r) { return r.json(); })
+                    .then(function(d) {
+                        if (d.success && d.data && d.data.url) {
+                            urlInput.value = d.data.url;
+                        }
+                    })
+                    .finally(function() { regenBtn.disabled = false; });
+                });
+            }
         })();
         </script>
         <?php

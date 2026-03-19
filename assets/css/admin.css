@@ -227,6 +227,10 @@ body.fp-fpmail_page_fp-fpmail-logs #wpbody-content > .settings-error {
     background: var(--fpdms-border-light);
     color: var(--fpdms-text-muted);
 }
+.fpmail-badge-info {
+    background: var(--fpdms-info-bg);
+    color: var(--fpdms-info-text);
+}
 
 /* Fields grid */
 .fpmail-fields-grid {
@@ -365,6 +369,17 @@ body.fp-fpmail_page_fp-fpmail-logs #wpbody-content > .settings-error {
 }
 .fpmail-test-email-row input {
     max-width: 320px;
+}
+
+.fpmail-brevo-url-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.fpmail-brevo-url-row input {
+    flex: 1;
+    min-width: 200px;
 }
 
 /* Table */

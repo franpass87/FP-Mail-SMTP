@@ -4,7 +4,7 @@ Contributors: franpass87
 Tags: smtp, email, mail, log
 Requires at least: 6.0
 Tested up to: 6.7
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 Requires PHP: 8.0
 License: Proprietary
 License URI: https://francescopasseri.com
@@ -25,6 +25,10 @@ Plugin WordPress per la configurazione SMTP e il log di tutte le email in uscita
 * Email di test
 
 == Changelog ==
+
+= 1.1.0 = (2025-03-19)
+* Integrazione Brevo: webhook per eventi transactional
+* Log unificato wp_mail + Brevo, filtro sorgente
 
 = 1.0.0 = (2025-03-19)
 * Rilascio iniziale

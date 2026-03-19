@@ -28,6 +28,8 @@ $options = [
     'fp_fpmail_from_name',
     'fp_fpmail_log_retention_days',
     'fp_fpmail_log_enabled',
+    'fp_fpmail_brevo_log_enabled',
+    'fp_fpmail_brevo_webhook_token',
 ];
 
 foreach ($options as $option) {

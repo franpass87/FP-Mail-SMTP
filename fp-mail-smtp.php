@@ -3,7 +3,7 @@
  * Plugin Name:       FP Mail SMTP
  * Plugin URI:        https://github.com/franpass87/FP-Mail-SMTP
  * Description:       Configurazione SMTP per WordPress e log completo di tutte le email in uscita. Compatibile con tutti i plugin FP.
- * Version:           1.0.0
+ * Version:           1.1.0
  * Requires at least: 6.0
  * Requires PHP:      8.0
  * Author:            Francesco Passeri
@@ -16,7 +16,7 @@
 
 defined('ABSPATH') || exit;
 
-define('FP_FPMAIL_VERSION', '1.0.0');
+define('FP_FPMAIL_VERSION', '1.1.0');
 define('FP_FPMAIL_FILE', __FILE__);
 define('FP_FPMAIL_DIR', plugin_dir_path(__FILE__));
 define('FP_FPMAIL_URL', plugin_dir_url(__FILE__));

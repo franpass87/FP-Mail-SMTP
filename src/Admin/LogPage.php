@@ -34,6 +34,7 @@ final class LogPage
         }
 
         $status = isset($_GET['status']) ? sanitize_text_field($_GET['status']) : '';
+        $source = isset($_GET['source']) ? sanitize_text_field($_GET['source']) : '';
         $search = isset($_GET['s']) ? sanitize_text_field($_GET['s']) : '';
         $paged = max(1, isset($_GET['paged']) ? absint($_GET['paged']) : 1);
         $offset = ($paged - 1) * self::PER_PAGE;
@@ -44,6 +45,11 @@ final class LogPage
         if ($status === 'sent' || $status === 'failed') {
             $where[] = 'status = %s';
             $params[] = $status;
+        }
+
+        if ($source === 'wp_mail' || $source === 'brevo') {
+            $where[] = 'source = %s';
+            $params[] = $source;
         }
 
         if ($search !== '') {
@@ -95,6 +101,11 @@ final class LogPage
                                 <option value="sent" <?php selected($status, 'sent'); ?>><?php esc_html_e('Inviate', 'fp-fpmail'); ?></option>
                                 <option value="failed" <?php selected($status, 'failed'); ?>><?php esc_html_e('Fallite', 'fp-fpmail'); ?></option>
                             </select>
+                            <select name="source">
+                                <option value=""><?php esc_html_e('Tutte le sorgenti', 'fp-fpmail'); ?></option>
+                                <option value="wp_mail" <?php selected($source, 'wp_mail'); ?>><?php esc_html_e('wp_mail', 'fp-fpmail'); ?></option>
+                                <option value="brevo" <?php selected($source, 'brevo'); ?>>Brevo</option>
+                            </select>
                             <button type="submit" class="fpmail-btn fpmail-btn-secondary"><?php esc_html_e('Filtra', 'fp-fpmail'); ?></button>
                         </div>
                     </form>
@@ -109,6 +120,7 @@ final class LogPage
                                 <th style="width: 140px;"><?php esc_html_e('Data', 'fp-fpmail'); ?></th>
                                 <th><?php esc_html_e('Destinatari', 'fp-fpmail'); ?></th>
                                 <th><?php esc_html_e('Oggetto', 'fp-fpmail'); ?></th>
+                                <th style="width: 80px;"><?php esc_html_e('Sorgente', 'fp-fpmail'); ?></th>
                                 <th style="width: 90px;"><?php esc_html_e('Stato', 'fp-fpmail'); ?></th>
                                 <th style="width: 100px;"><?php esc_html_e('Azioni', 'fp-fpmail'); ?></th>
                             </tr>
@@ -116,21 +128,32 @@ final class LogPage
                         <tbody>
                             <?php if (empty($rows)) : ?>
                                 <tr>
-                                    <td colspan="5"><?php esc_html_e('Nessuna email nel log.', 'fp-fpmail'); ?></td>
+                                    <td colspan="6"><?php esc_html_e('Nessuna email nel log.', 'fp-fpmail'); ?></td>
                                 </tr>
                             <?php else : ?>
-                                <?php foreach ($rows as $row) : ?>
+                                <?php foreach ($rows as $row) :
+                                    $rowSource = $row['source'] ?? 'wp_mail';
+                                    $detailUrl = admin_url('admin.php?page=fp-fpmail-logs&detail=' . (int) $row['id']);
+                                    if ($source !== '') {
+                                        $detailUrl = add_query_arg('source', $source, $detailUrl);
+                                    }
+                                ?>
                                     <tr>
                                         <td><?php echo esc_html(wp_date('d/m/Y H:i', strtotime($row['created_at']))); ?></td>
                                         <td class="fpmail-cell-to"><?php echo esc_html($row['to_addresses']); ?></td>
                                         <td class="fpmail-cell-subject"><?php echo esc_html(mb_substr($row['subject'], 0, 60) . (mb_strlen($row['subject']) > 60 ? '…' : '')); ?></td>
+                                        <td>
+                                            <span class="fpmail-badge <?php echo $rowSource === 'brevo' ? 'fpmail-badge-info' : 'fpmail-badge-neutral'; ?>">
+                                                <?php echo $rowSource === 'brevo' ? 'Brevo' : 'wp_mail'; ?>
+                                            </span>
+                                        </td>
                                         <td>
                                             <span class="fpmail-badge fpmail-badge-<?php echo $row['status'] === 'sent' ? 'success' : 'danger'; ?>">
                                                 <?php echo $row['status'] === 'sent' ? esc_html__('Inviata', 'fp-fpmail') : esc_html__('Fallita', 'fp-fpmail'); ?>
                                             </span>
                                         </td>
                                         <td>
-                                            <a href="<?php echo esc_url(admin_url('admin.php?page=fp-fpmail-logs&detail=' . (int) $row['id'])); ?>"
+                                            <a href="<?php echo esc_url($detailUrl); ?>"
                                                class="button button-small"><?php esc_html_e('Dettaglio', 'fp-fpmail'); ?></a>
                                         </td>
                                     </tr>
@@ -145,6 +168,9 @@ final class LogPage
                             $base = add_query_arg(['page' => 'fp-fpmail-logs', 'paged' => '%#%']);
                             if ($status !== '') {
                                 $base = add_query_arg('status', $status, $base);
+                            }
+                            if ($source !== '') {
+                                $base = add_query_arg('source', $source, $base);
                             }
                             if ($search !== '') {
                                 $base = add_query_arg('s', rawurlencode($search), $base);
@@ -183,6 +209,14 @@ final class LogPage
         if (!$row) {
             wp_die(esc_html__('Record non trovato.', 'fp-fpmail'));
         }
+
+        $rowSource = $row['source'] ?? 'wp_mail';
+        $brevoEvent = $row['brevo_event'] ?? '';
+        $brevoMessageId = $row['brevo_message_id'] ?? '';
+        $backUrl = admin_url('admin.php?page=fp-fpmail-logs');
+        if (isset($_GET['source']) && $_GET['source'] !== '') {
+            $backUrl = add_query_arg('source', sanitize_text_field($_GET['source']), $backUrl);
+        }
         ?>
         <div class="wrap fpmail-admin-page">
             <div class="fpmail-page-header">
@@ -192,7 +226,7 @@ final class LogPage
                 </div>
             </div>
 
-            <p><a href="<?php echo esc_url(admin_url('admin.php?page=fp-fpmail-logs')); ?>" class="fpmail-btn fpmail-btn-secondary">&larr; <?php esc_html_e('Torna al log', 'fp-fpmail'); ?></a></p>
+            <p><a href="<?php echo esc_url($backUrl); ?>" class="fpmail-btn fpmail-btn-secondary">&larr; <?php esc_html_e('Torna al log', 'fp-fpmail'); ?></a></p>
 
             <div class="fpmail-card">
                 <div class="fpmail-card-header">
@@ -203,6 +237,9 @@ final class LogPage
                     <span class="fpmail-badge fpmail-badge-<?php echo $row['status'] === 'sent' ? 'success' : 'danger'; ?>">
                         <?php echo $row['status'] === 'sent' ? esc_html__('Inviata', 'fp-fpmail') : esc_html__('Fallita', 'fp-fpmail'); ?>
                     </span>
+                    <span class="fpmail-badge fpmail-badge-neutral" style="margin-left: 0.5rem;">
+                        <?php echo $rowSource === 'brevo' ? 'Brevo' : 'wp_mail'; ?>
+                    </span>
                 </div>
                 <div class="fpmail-card-body">
                     <dl class="fpmail-detail-dl">
@@ -211,16 +248,36 @@ final class LogPage
                         <dt><?php esc_html_e('Destinatari', 'fp-fpmail'); ?></dt>
                         <dd><?php echo esc_html($row['to_addresses']); ?></dd>
                         <dt><?php esc_html_e('Mittente', 'fp-fpmail'); ?></dt>
-                        <dd><?php echo esc_html($row['from_email']); ?></dd>
+                        <dd><?php echo esc_html($row['from_email'] ?? ''); ?></dd>
                         <dt><?php esc_html_e('Oggetto', 'fp-fpmail'); ?></dt>
                         <dd><?php echo esc_html($row['subject']); ?></dd>
                         <dt><?php esc_html_e('Allegati', 'fp-fpmail'); ?></dt>
-                        <dd><?php echo esc_html((string) $row['attachments_count']); ?></dd>
-                        <?php if ($row['status'] === 'failed' && $row['error_message'] !== '') : ?>
+                        <dd><?php echo esc_html((string) ($row['attachments_count'] ?? 0)); ?></dd>
+                        <?php if ($rowSource === 'brevo' && $brevoEvent !== '') : ?>
+                            <dt><?php esc_html_e('Evento Brevo', 'fp-fpmail'); ?></dt>
+                            <dd><code><?php echo esc_html($brevoEvent); ?></code></dd>
+                        <?php endif; ?>
+                        <?php if ($rowSource === 'brevo' && $brevoMessageId !== '') : ?>
+                            <dt><?php esc_html_e('Message-ID Brevo', 'fp-fpmail'); ?></dt>
+                            <dd><code class="is-monospace"><?php echo esc_html($brevoMessageId); ?></code></dd>
+                        <?php endif; ?>
+                        <?php if ($row['status'] === 'failed' && !empty($row['error_message'])) : ?>
                             <dt><?php esc_html_e('Errore', 'fp-fpmail'); ?></dt>
                             <dd class="fpmail-error-msg"><?php echo esc_html($row['error_message']); ?></dd>
                         <?php endif; ?>
                     </dl>
+                    <?php
+                    $mirrorLink = '';
+                    if (!empty($row['headers']) && preg_match('/mirror_link:\s*(\S+)/', $row['headers'], $m)) {
+                        $mirrorLink = trim($m[1]);
+                    }
+                    if ($rowSource === 'brevo' && $mirrorLink !== '' && esc_url_raw($mirrorLink) === $mirrorLink) : ?>
+                        <p style="margin-top: 1rem;">
+                            <a href="<?php echo esc_url($mirrorLink); ?>" target="_blank" rel="noopener" class="fpmail-btn fpmail-btn-secondary">
+                                <?php esc_html_e('Apri anteprima Brevo', 'fp-fpmail'); ?> &rarr;
+                            </a>
+                        </p>
+                    <?php endif; ?>
                 </div>
             </div>
 
