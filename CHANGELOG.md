@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.2] - 2025-03-19
+
+### Fixed
+
+- Admin CSS: rimosso flex/`order` su `#wpbody-content` che spostava le notice WordPress sotto il contenuto; allineato a `fp-admin-ui-design-system.mdc` (`margin-top` sul `.wrap`).
+
 ## [1.1.1] - 2025-03-19
 
 ### Fixed

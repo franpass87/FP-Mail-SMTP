@@ -37,24 +37,10 @@
     --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Layout - notice order fix */
-body.toplevel_page_fp-fpmail #wpbody-content,
-body.fp-fpmail_page_fp-fpmail-logs #wpbody-content {
-    display: flex;
-    flex-direction: column;
-}
+/* Notice admin: niente flex+order su #wpbody-content (le notice devono restare sopra al .wrap — fp-admin-ui-design-system.mdc) */
 body.toplevel_page_fp-fpmail #wpbody-content > .wrap.fpmail-admin-page,
-body.fp-fpmail-logs_page_fp-fpmail-logs #wpbody-content > .wrap.fpmail-admin-page {
-    order: 1;
-}
-body.toplevel_page_fp-fpmail #wpbody-content > .notice,
-body.toplevel_page_fp-fpmail #wpbody-content > .updated,
-body.toplevel_page_fp-fpmail #wpbody-content > .settings-error,
-body.fp-fpmail_page_fp-fpmail-logs #wpbody-content > .notice,
-body.fp-fpmail_page_fp-fpmail-logs #wpbody-content > .updated,
-body.fp-fpmail_page_fp-fpmail-logs #wpbody-content > .settings-error {
-    order: 2;
-    margin: 0 20px 20px;
+body.fp-fpmail_page_fp-fpmail-logs #wpbody-content > .wrap.fpmail-admin-page {
+    margin-top: 12px;
 }
 
 /* Page header */
