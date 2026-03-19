@@ -13,6 +13,8 @@
 ### Changed
 
 - Tabella log: colonne source, brevo_event, brevo_message_id (migrazione 1.1)
+- Ricerca log: include brevo_message_id
+- Webhook Brevo: fallback su body raw se get_json_params vuoto
 
 ## [1.0.0] - 2025-03-19
 

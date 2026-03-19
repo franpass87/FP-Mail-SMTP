@@ -30,6 +30,7 @@ $options = [
     'fp_fpmail_log_enabled',
     'fp_fpmail_brevo_log_enabled',
     'fp_fpmail_brevo_webhook_token',
+    'fp_fpmail_db_version',
 ];
 
 foreach ($options as $option) {

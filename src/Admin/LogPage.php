@@ -54,7 +54,8 @@ final class LogPage
 
         if ($search !== '') {
             $like = '%' . $wpdb->esc_like($search) . '%';
-            $where[] = '(to_addresses LIKE %s OR subject LIKE %s OR from_email LIKE %s)';
+            $where[] = '(to_addresses LIKE %s OR subject LIKE %s OR from_email LIKE %s OR brevo_message_id LIKE %s)';
+            $params[] = $like;
             $params[] = $like;
             $params[] = $like;
             $params[] = $like;

@@ -89,7 +89,9 @@ final class BrevoWebhookController
     {
         $body = $request->get_json_params();
         if (!is_array($body)) {
-            $body = [];
+            $raw = $request->get_body();
+            $decoded = is_string($raw) ? json_decode($raw, true) : null;
+            $body = is_array($decoded) ? $decoded : [];
         }
 
         $event = $body['event'] ?? '';
