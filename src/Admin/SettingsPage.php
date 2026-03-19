@@ -155,9 +155,11 @@ final class SettingsPage
         $adminEmail = get_option('admin_email', '');
         ?>
         <div class="wrap fpmail-admin-page">
+            <?php /* h1 primo nel .wrap: compat notice JS (.wrap h1).after */ ?>
+            <h1 class="screen-reader-text"><?php esc_html_e('FP Mail SMTP', 'fp-fpmail'); ?></h1>
             <div class="fpmail-page-header">
                 <div class="fpmail-page-header-content">
-                    <h1><span class="dashicons dashicons-email-alt"></span> <?php esc_html_e('FP Mail SMTP', 'fp-fpmail'); ?></h1>
+                    <h2 class="fpmail-page-header-title" aria-hidden="true"><span class="dashicons dashicons-email-alt"></span> <?php esc_html_e('FP Mail SMTP', 'fp-fpmail'); ?></h2>
                     <p><?php esc_html_e('Configura SMTP e visualizza il log di tutte le email in uscita.', 'fp-fpmail'); ?></p>
                 </div>
                 <span class="fpmail-page-header-badge">v<?php echo esc_html(FP_FPMAIL_VERSION); ?></span>

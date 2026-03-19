@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.3] - 2025-03-19
+
+### Fixed
+
+- Admin: `h1.screen-reader-text` primo nel `.wrap` + titolo banner in `h2` (Impostazioni, Log, Dettaglio); compat notice JS `.wrap h1`; CSS aggiornato per titolo e `.notice` sul `.wrap`.
+
 ## [1.1.2] - 2025-03-19
 
 ### Fixed

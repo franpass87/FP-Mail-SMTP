@@ -54,17 +54,26 @@ body.fp-fpmail_page_fp-fpmail-logs #wpbody-content > .wrap.fpmail-admin-page {
     align-items: center;
     color: #fff;
 }
-.fpmail-page-header h1 {
+.fpmail-page-header .fpmail-page-header-title {
     margin: 0 0 0.25rem 0;
     color: #fff;
     font-size: 1.5rem;
 }
-.fpmail-page-header h1 .dashicons {
+.fpmail-page-header .fpmail-page-header-title .dashicons {
     font-size: 1.5rem;
     width: 1.5rem;
     height: 1.5rem;
     margin-right: 0.5rem;
     vertical-align: middle;
+}
+
+.wrap.fpmail-admin-page > .notice,
+.wrap.fpmail-admin-page > div.updated,
+.wrap.fpmail-admin-page > div.error {
+    float: none;
+    clear: both;
+    box-sizing: border-box;
+    max-width: 100%;
 }
 .fpmail-page-header p {
     margin: 0;

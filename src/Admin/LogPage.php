@@ -76,9 +76,11 @@ final class LogPage
         wp_enqueue_style('fp-fpmail-admin', FP_FPMAIL_URL . 'assets/css/admin.css', [], FP_FPMAIL_VERSION);
         ?>
         <div class="wrap fpmail-admin-page">
+            <?php /* h1 primo nel .wrap: compat notice JS (.wrap h1).after */ ?>
+            <h1 class="screen-reader-text"><?php esc_html_e('Log Email', 'fp-fpmail'); ?></h1>
             <div class="fpmail-page-header">
                 <div class="fpmail-page-header-content">
-                    <h1><span class="dashicons dashicons-list-view"></span> <?php esc_html_e('Log Email', 'fp-fpmail'); ?></h1>
+                    <h2 class="fpmail-page-header-title" aria-hidden="true"><span class="dashicons dashicons-list-view"></span> <?php esc_html_e('Log Email', 'fp-fpmail'); ?></h2>
                     <p><?php esc_html_e('Elenco di tutte le email inviate e fallite.', 'fp-fpmail'); ?></p>
                 </div>
                 <span class="fpmail-page-header-badge">v<?php echo esc_html(FP_FPMAIL_VERSION); ?></span>
@@ -220,9 +222,11 @@ final class LogPage
         }
         ?>
         <div class="wrap fpmail-admin-page">
+            <?php /* h1 primo nel .wrap: compat notice JS (.wrap h1).after */ ?>
+            <h1 class="screen-reader-text"><?php esc_html_e('Dettaglio email', 'fp-fpmail'); ?></h1>
             <div class="fpmail-page-header">
                 <div class="fpmail-page-header-content">
-                    <h1><span class="dashicons dashicons-email"></span> <?php esc_html_e('Dettaglio email', 'fp-fpmail'); ?></h1>
+                    <h2 class="fpmail-page-header-title" aria-hidden="true"><span class="dashicons dashicons-email"></span> <?php esc_html_e('Dettaglio email', 'fp-fpmail'); ?></h2>
                     <p><?php echo esc_html($row['subject']); ?></p>
                 </div>
             </div>
