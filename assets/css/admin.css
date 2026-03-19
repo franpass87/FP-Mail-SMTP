@@ -1,0 +1,450 @@
+/**
+ * FP Mail SMTP - Admin styles
+ * Design system FP
+ */
+
+:root {
+    --fpdms-primary: #667eea;
+    --fpdms-primary-dark: #764ba2;
+    --fpdms-gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --fpdms-secondary: #11998e;
+    --fpdms-gradient-secondary: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    --fpdms-success: #10b981;
+    --fpdms-success-bg: #d1fae5;
+    --fpdms-success-text: #065f46;
+    --fpdms-warning: #f59e0b;
+    --fpdms-warning-bg: #fef3c7;
+    --fpdms-warning-text: #92400e;
+    --fpdms-danger: #ef4444;
+    --fpdms-danger-bg: #fee2e2;
+    --fpdms-danger-text: #991b1b;
+    --fpdms-info: #3b82f6;
+    --fpdms-info-bg: #dbeafe;
+    --fpdms-info-text: #1e40af;
+    --fpdms-text: #1f2937;
+    --fpdms-text-light: #4b5563;
+    --fpdms-text-muted: #9ca3af;
+    --fpdms-border: #e5e7eb;
+    --fpdms-border-light: #f3f4f6;
+    --fpdms-bg-white: #ffffff;
+    --fpdms-bg-light: #f9fafb;
+    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-pill: 999px;
+    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Layout - notice order fix */
+body.toplevel_page_fp-fpmail #wpbody-content,
+body.fp-fpmail_page_fp-fpmail-logs #wpbody-content {
+    display: flex;
+    flex-direction: column;
+}
+body.toplevel_page_fp-fpmail #wpbody-content > .wrap.fpmail-admin-page,
+body.fp-fpmail-logs_page_fp-fpmail-logs #wpbody-content > .wrap.fpmail-admin-page {
+    order: 1;
+}
+body.toplevel_page_fp-fpmail #wpbody-content > .notice,
+body.toplevel_page_fp-fpmail #wpbody-content > .updated,
+body.toplevel_page_fp-fpmail #wpbody-content > .settings-error,
+body.fp-fpmail_page_fp-fpmail-logs #wpbody-content > .notice,
+body.fp-fpmail_page_fp-fpmail-logs #wpbody-content > .updated,
+body.fp-fpmail_page_fp-fpmail-logs #wpbody-content > .settings-error {
+    order: 2;
+    margin: 0 20px 20px;
+}
+
+/* Page header */
+.fpmail-admin-page .fpmail-page-header {
+    background: var(--fpdms-gradient-primary);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+}
+.fpmail-page-header h1 {
+    margin: 0 0 0.25rem 0;
+    color: #fff;
+    font-size: 1.5rem;
+}
+.fpmail-page-header h1 .dashicons {
+    font-size: 1.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+}
+.fpmail-page-header p {
+    margin: 0;
+    opacity: 0.95;
+    font-size: 0.95rem;
+}
+.fpmail-page-header-badge {
+    background: rgba(255, 255, 255, 0.25);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-pill);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* Status bar */
+.fpmail-status-bar {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+.fpmail-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--radius-pill);
+    font-size: 0.85rem;
+    background: var(--fpdms-bg-light);
+    border: 1px solid var(--fpdms-border);
+}
+.fpmail-status-pill.is-active {
+    background: var(--fpdms-success-bg);
+    border-color: var(--fpdms-success);
+    color: var(--fpdms-success-text);
+}
+.fpmail-status-pill.is-active .dot {
+    background: var(--fpdms-success);
+}
+.fpmail-status-pill.is-missing {
+    background: var(--fpdms-warning-bg);
+    border-color: var(--fpdms-warning);
+    color: var(--fpdms-warning-text);
+}
+.fpmail-status-pill.is-missing .dot {
+    background: var(--fpdms-warning);
+}
+.fpmail-status-pill .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--fpdms-text-muted);
+}
+
+/* Alert */
+.fpmail-alert {
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+.fpmail-alert .dashicons {
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+}
+.fpmail-alert-success {
+    background: var(--fpdms-success-bg);
+    border-left: 4px solid var(--fpdms-success);
+    color: var(--fpdms-success-text);
+}
+.fpmail-alert-danger {
+    background: var(--fpdms-danger-bg);
+    border-left: 4px solid var(--fpdms-danger);
+    color: var(--fpdms-danger-text);
+}
+.fpmail-alert-warning {
+    background: var(--fpdms-warning-bg);
+    border-left: 4px solid var(--fpdms-warning);
+    color: var(--fpdms-warning-text);
+}
+
+/* Card */
+.fpmail-card {
+    background: var(--fpdms-bg-white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+.fpmail-card:hover {
+    box-shadow: var(--shadow-lg);
+    transition: var(--transition);
+}
+.fpmail-card-header {
+    background: var(--fpdms-bg-light);
+    border-bottom: 2px solid var(--fpdms-border-light);
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.fpmail-card-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.fpmail-card-header .dashicons {
+    color: var(--fpdms-primary);
+}
+.fpmail-card-header h2 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+.fpmail-card-body {
+    padding: 1.5rem;
+}
+.fpmail-card-body .description {
+    margin-bottom: 1rem;
+    color: var(--fpdms-text-light);
+}
+
+/* Badge */
+.fpmail-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-pill);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.fpmail-badge-success {
+    background: var(--fpdms-success-bg);
+    color: var(--fpdms-success-text);
+}
+.fpmail-badge-danger {
+    background: var(--fpdms-danger-bg);
+    color: var(--fpdms-danger-text);
+}
+.fpmail-badge-warning {
+    background: var(--fpdms-warning-bg);
+    color: var(--fpdms-warning-text);
+}
+.fpmail-badge-neutral {
+    background: var(--fpdms-border-light);
+    color: var(--fpdms-text-muted);
+}
+
+/* Fields grid */
+.fpmail-fields-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+}
+.fpmail-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+.fpmail-field label {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+.fpmail-field input[type="text"],
+.fpmail-field input[type="email"],
+.fpmail-field input[type="number"],
+.fpmail-field input[type="password"],
+.fpmail-field select {
+    border: 2px solid var(--fpdms-border);
+    border-radius: var(--radius-md);
+    padding: 0.5rem 0.75rem;
+    max-width: 100%;
+}
+.fpmail-field input:focus,
+.fpmail-field select:focus {
+    border-color: var(--fpdms-primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+.fpmail-hint {
+    font-size: 0.85rem;
+    color: var(--fpdms-text-muted);
+}
+
+/* Toggle */
+.fpmail-toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+}
+.fpmail-toggle-info strong {
+    display: block;
+    margin-bottom: 0.15rem;
+}
+.fpmail-toggle-info span {
+    font-size: 0.9rem;
+    color: var(--fpdms-text-light);
+}
+.fpmail-toggle {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 24px;
+}
+.fpmail-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.fpmail-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--fpdms-border);
+    border-radius: var(--radius-pill);
+    transition: var(--transition);
+}
+.fpmail-toggle-slider::before {
+    content: '';
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: var(--transition);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+.fpmail-toggle input:checked + .fpmail-toggle-slider {
+    background: var(--fpdms-primary);
+}
+.fpmail-toggle input:checked + .fpmail-toggle-slider::before {
+    transform: translateX(24px);
+}
+
+/* Buttons */
+.fpmail-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1.25rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.95rem;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.fpmail-btn .dashicons {
+    font-size: 1.1rem;
+    width: 1.1rem;
+    height: 1.1rem;
+}
+.fpmail-btn-primary {
+    background: var(--fpdms-gradient-primary);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(102, 126, 234, 0.3);
+}
+.fpmail-btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+.fpmail-btn-secondary {
+    background: var(--fpdms-bg-light);
+    color: var(--fpdms-text);
+    border: 2px solid var(--fpdms-border);
+}
+.fpmail-btn-secondary:hover {
+    border-color: var(--fpdms-primary);
+    color: var(--fpdms-primary);
+}
+
+/* Test email row */
+.fpmail-test-email-row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+.fpmail-test-email-row input {
+    max-width: 320px;
+}
+
+/* Table */
+.fpmail-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.fpmail-table thead th {
+    background: var(--fpdms-gradient-primary);
+    color: #fff;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+}
+.fpmail-table tbody td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--fpdms-border-light);
+}
+.fpmail-table tbody tr:hover {
+    background: var(--fpdms-bg-light);
+}
+.fpmail-cell-to,
+.fpmail-cell-subject {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Filters */
+.fpmail-filters-row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.fpmail-filters-row input[type="search"] {
+    min-width: 220px;
+}
+.fpmail-filters-row select {
+    min-width: 140px;
+}
+
+/* Pagination */
+.fpmail-pagination {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--fpdms-border-light);
+}
+.fpmail-pagination .page-numbers {
+    margin: 0 0.2rem;
+}
+
+/* Detail page */
+.fpmail-detail-dl {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 0.5rem 1.5rem;
+}
+.fpmail-detail-dl dt {
+    font-weight: 600;
+    color: var(--fpdms-text-light);
+}
+.fpmail-detail-dl dd {
+    margin: 0;
+}
+.fpmail-error-msg {
+    color: var(--fpdms-danger);
+    font-family: monospace;
+}
+.fpmail-message-preview,
+.fpmail-headers-preview {
+    background: var(--fpdms-bg-light);
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.is-monospace {
+    font-family: monospace;
+    font-size: 12px;
+}

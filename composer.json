@@ -1,0 +1,11 @@
+{
+    "name": "franpass87/fp-mail-smtp",
+    "autoload": {
+        "psr-4": {
+            "FP\\Fpmail\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">=8.0"
+    }
+}
