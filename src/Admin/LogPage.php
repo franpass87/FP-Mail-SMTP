@@ -114,16 +114,16 @@ final class LogPage
             </div>
 
             <div class="fpmail-card">
-                <div class="fpmail-card-body" style="padding: 0;">
+                <div class="fpmail-card-body fpmail-card-body--no-padding">
                     <table class="fpmail-table wp-list-table widefat fixed striped">
                         <thead>
                             <tr>
-                                <th style="width: 140px;"><?php esc_html_e('Data', 'fp-fpmail'); ?></th>
+                                <th class="fpmail-col-date"><?php esc_html_e('Data', 'fp-fpmail'); ?></th>
                                 <th><?php esc_html_e('Destinatari', 'fp-fpmail'); ?></th>
                                 <th><?php esc_html_e('Oggetto', 'fp-fpmail'); ?></th>
-                                <th style="width: 80px;"><?php esc_html_e('Sorgente', 'fp-fpmail'); ?></th>
-                                <th style="width: 90px;"><?php esc_html_e('Stato', 'fp-fpmail'); ?></th>
-                                <th style="width: 100px;"><?php esc_html_e('Azioni', 'fp-fpmail'); ?></th>
+                                <th class="fpmail-col-source"><?php esc_html_e('Sorgente', 'fp-fpmail'); ?></th>
+                                <th class="fpmail-col-status"><?php esc_html_e('Stato', 'fp-fpmail'); ?></th>
+                                <th class="fpmail-col-actions"><?php esc_html_e('Azioni', 'fp-fpmail'); ?></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -208,7 +208,7 @@ final class LogPage
         );
 
         if (!$row) {
-            wp_die(esc_html__('Record non trovato.', 'fp-fpmail'));
+            wp_die(esc_html__('Record non trovato.', 'fp-fpmail'), '', ['response' => 404]);
         }
 
         $rowSource = $row['source'] ?? 'wp_mail';
@@ -238,7 +238,7 @@ final class LogPage
                     <span class="fpmail-badge fpmail-badge-<?php echo $row['status'] === 'sent' ? 'success' : 'danger'; ?>">
                         <?php echo $row['status'] === 'sent' ? esc_html__('Inviata', 'fp-fpmail') : esc_html__('Fallita', 'fp-fpmail'); ?>
                     </span>
-                    <span class="fpmail-badge fpmail-badge-neutral" style="margin-left: 0.5rem;">
+                    <span class="fpmail-badge fpmail-badge-neutral fpmail-badge-spacing">
                         <?php echo $rowSource === 'brevo' ? 'Brevo' : 'wp_mail'; ?>
                     </span>
                 </div>
@@ -273,7 +273,7 @@ final class LogPage
                         $mirrorLink = trim($m[1]);
                     }
                     if ($rowSource === 'brevo' && $mirrorLink !== '' && esc_url_raw($mirrorLink) === $mirrorLink) : ?>
-                        <p style="margin-top: 1rem;">
+                        <p class="fpmail-mirror-link-row">
                             <a href="<?php echo esc_url($mirrorLink); ?>" target="_blank" rel="noopener" class="fpmail-btn fpmail-btn-secondary">
                                 <?php esc_html_e('Apri anteprima Brevo', 'fp-fpmail'); ?> &rarr;
                             </a>

@@ -41,8 +41,14 @@ final class BrevoWebhookController
         ]);
     }
 
+    private const RATE_LIMIT_KEY = 'fp_fpmail_brevo_webhook_rl';
+
+    private const RATE_LIMIT_MAX = 60;
+
+    private const RATE_LIMIT_WINDOW = 60;
+
     /**
-     * Verifica il token webhook (query ?token= o Authorization Bearer).
+     * Verifica il token webhook (query ?token= o Authorization Bearer) e rate limiting.
      *
      * @param WP_REST_Request $request Request.
      * @return bool
@@ -61,7 +67,41 @@ final class BrevoWebhookController
         $provided = $request->get_param('token')
             ?? $this->get_bearer_token($request);
 
-        return is_string($provided) && hash_equals($token, $provided);
+        if (!is_string($provided) || !hash_equals($token, $provided)) {
+            return false;
+        }
+
+        return $this->check_rate_limit();
+    }
+
+    /**
+     * Rate limiting basato su transient (max richieste per minuto per IP).
+     *
+     * @return bool True se entro il limite.
+     */
+    private function check_rate_limit(): bool
+    {
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $key = self::RATE_LIMIT_KEY . '_' . md5($ip);
+        $data = get_transient($key);
+        $now = time();
+
+        if ($data === false || !is_array($data)) {
+            $data = ['c' => 0, 't' => $now];
+        }
+        if ($now - $data['t'] > self::RATE_LIMIT_WINDOW) {
+            $data = ['c' => 0, 't' => $now];
+        }
+
+        $data['c']++;
+        if ($data['c'] > self::RATE_LIMIT_MAX) {
+            return false;
+        }
+
+        $ttl = max(1, self::RATE_LIMIT_WINDOW - ($now - $data['t']));
+        set_transient($key, $data, $ttl);
+
+        return true;
     }
 
     /**
@@ -106,7 +146,9 @@ final class BrevoWebhookController
             return new WP_REST_Response(['ok' => true, 'ignored' => $event], 200);
         }
 
-        $subject = isset($body['subject']) ? sanitize_text_field((string) $body['subject']) : '';
+        $subject = isset($body['subject'])
+            ? str_replace(["\r", "\n"], '', sanitize_text_field((string) $body['subject']))
+            : '';
         $messageId = isset($body['message-id']) ? sanitize_text_field((string) $body['message-id']) : '';
         $date = $body['date'] ?? '';
         $reason = $body['reason'] ?? '';

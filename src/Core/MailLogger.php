@@ -75,7 +75,9 @@ final class MailLogger
         $toAddresses = is_array($to) ? implode(', ', $to) : (string) $to;
         $toAddresses = sanitize_text_field($toAddresses);
 
-        $subject = isset($mail_data['subject']) ? sanitize_text_field((string) $mail_data['subject']) : '';
+        $subject = isset($mail_data['subject'])
+            ? str_replace(["\r", "\n"], '', sanitize_text_field((string) $mail_data['subject']))
+            : '';
         $message = isset($mail_data['message']) ? (string) $mail_data['message'] : '';
         $messagePreview = sanitize_textarea_field(wp_strip_all_tags(mb_substr($message, 0, self::PREVIEW_LENGTH)));
 

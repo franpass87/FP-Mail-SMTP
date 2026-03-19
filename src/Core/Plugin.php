@@ -154,7 +154,7 @@ final class Plugin
     public function renderSettingsPage(): void
     {
         if (!current_user_can('manage_options')) {
-            wp_die(esc_html__('Non hai i permessi per accedere a questa pagina.', 'fp-fpmail'));
+            wp_die(esc_html__('Non hai i permessi per accedere a questa pagina.', 'fp-fpmail'), '', ['response' => 403]);
         }
         (new SettingsPage())->render();
     }
@@ -165,7 +165,7 @@ final class Plugin
     public function renderLogPage(): void
     {
         if (!current_user_can('manage_options')) {
-            wp_die(esc_html__('Non hai i permessi per accedere a questa pagina.', 'fp-fpmail'));
+            wp_die(esc_html__('Non hai i permessi per accedere a questa pagina.', 'fp-fpmail'), '', ['response' => 403]);
         }
         (new LogPage())->render();
     }

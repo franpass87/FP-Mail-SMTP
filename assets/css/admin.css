@@ -463,3 +463,28 @@ body.fp-fpmail_page_fp-fpmail-logs #wpbody-content > .settings-error {
     font-family: monospace;
     font-size: 12px;
 }
+
+/* Varianti card/tabella (niente stili inline) */
+.fpmail-card-body--no-padding {
+    padding: 0;
+}
+.fpmail-field-spacing {
+    margin-top: 1rem;
+}
+.fpmail-test-result {
+    display: none;
+    margin-top: 1rem;
+}
+.fpmail-test-result.is-visible {
+    display: flex;
+}
+.fpmail-mirror-link-row {
+    margin-top: 1rem;
+}
+.fpmail-badge-spacing {
+    margin-left: 0.5rem;
+}
+.fpmail-table .fpmail-col-date { width: 140px; }
+.fpmail-table .fpmail-col-source { width: 80px; }
+.fpmail-table .fpmail-col-status { width: 90px; }
+.fpmail-table .fpmail-col-actions { width: 100px; }

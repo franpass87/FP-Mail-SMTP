@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.1.1] - 2025-03-19
+
+### Fixed
+
+- Header injection: sanitizzazione `\r` e `\n` nel subject (MailLogger, BrevoWebhookController, email di test)
+- `wp_die`: risposta HTTP 403/404 corretta al posto di 200
+
+### Security
+
+- Rate limiting sul webhook Brevo (60 req/min per IP) per prevenire abusi
+- Header injection prevenuto su tutti i subject email
+
+### Changed
+
+- Costante `FP_FPMAIL_BASENAME` aggiunta (architettura FP)
+- `declare(strict_types=1)` nel main file
+- Stili inline spostati in CSS (design system: `.fpmail-card-body--no-padding`, `.fpmail-field-spacing`, ecc.)
+
 ## [1.1.0] - 2025-03-19
 
 ### Added

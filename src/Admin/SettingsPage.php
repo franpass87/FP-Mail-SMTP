@@ -51,7 +51,7 @@ final class SettingsPage
     public function handleSave(): void
     {
         if (!current_user_can('manage_options')) {
-            wp_die(esc_html__('Accesso negato.', 'fp-fpmail'));
+            wp_die(esc_html__('Accesso negato.', 'fp-fpmail'), '', ['response' => 403]);
         }
         check_admin_referer('fp_fpmail_save_settings', 'fp_fpmail_nonce');
 
@@ -108,11 +108,11 @@ final class SettingsPage
             wp_send_json_error(['message' => __('Indirizzo email non valido.', 'fp-fpmail')]);
         }
 
-        $subject = sprintf(
+        $subject = str_replace(["\r", "\n"], '', sprintf(
             /* translators: %s: site name */
             __('[%s] Email di test FP Mail SMTP', 'fp-fpmail'),
             get_bloginfo('name')
-        );
+        ));
         $body = sprintf(
             /* translators: 1: site url, 2: current datetime */
             __("Questa è un'email di test da FP Mail SMTP.\n\nSito: %1\$s\nData/Ora: %2\$s", 'fp-fpmail'),
@@ -279,7 +279,7 @@ final class SettingsPage
                                 <span class="fpmail-toggle-slider"></span>
                             </label>
                         </div>
-                        <div class="fpmail-field" style="margin-top: 1rem;">
+                        <div class="fpmail-field fpmail-field-spacing">
                             <label for="fp_fpmail_log_retention_days"><?php esc_html_e('Retention log (giorni)', 'fp-fpmail'); ?></label>
                             <input type="number" id="fp_fpmail_log_retention_days" name="fp_fpmail_log_retention_days"
                                    value="<?php echo esc_attr((string) get_option('fp_fpmail_log_retention_days', 30)); ?>"
@@ -318,7 +318,7 @@ final class SettingsPage
                             </label>
                         </div>
                         <?php if ($brevoEnabled && $brevoWebhookUrl !== '') : ?>
-                            <div class="fpmail-field" style="margin-top: 1rem;">
+                            <div class="fpmail-field fpmail-field-spacing">
                                 <label><?php esc_html_e('URL Webhook da configurare in Brevo', 'fp-fpmail'); ?></label>
                                 <div class="fpmail-brevo-url-row">
                                     <input type="text" id="fpmail-brevo-url" value="<?php echo esc_attr($brevoWebhookUrl); ?>"
@@ -363,7 +363,7 @@ final class SettingsPage
                             <?php esc_html_e('Invia test', 'fp-fpmail'); ?>
                         </button>
                     </div>
-                    <div id="fpmail-test-result" class="fpmail-alert" style="display:none; margin-top: 1rem;"></div>
+                    <div id="fpmail-test-result" class="fpmail-alert fpmail-test-result"></div>
                 </div>
             </div>
         </div>
@@ -376,7 +376,7 @@ final class SettingsPage
             if (!btn || !toInput || !result) return;
             btn.addEventListener('click', function() {
                 btn.disabled = true;
-                result.style.display = 'none';
+                result.classList.remove('is-visible');
                 var formData = new FormData();
                 formData.append('action', 'fp_fpmail_send_test');
                 formData.append('nonce', '<?php echo esc_js(wp_create_nonce('fp_fpmail_test_email')); ?>');
@@ -388,14 +388,14 @@ final class SettingsPage
                 })
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
-                    result.style.display = 'block';
-                    result.className = 'fpmail-alert ' + (data.success ? 'fpmail-alert-success' : 'fpmail-alert-danger');
+                    result.classList.add('is-visible');
+                    result.className = 'fpmail-alert fpmail-test-result ' + (data.success ? 'fpmail-alert-success' : 'fpmail-alert-danger');
                     result.innerHTML = (data.success ? '<span class="dashicons dashicons-yes-alt"></span> ' : '<span class="dashicons dashicons-warning"></span> ') +
                         (data.data && data.data.message ? data.data.message : (data.data && data.data[0] ? data.data[0].message : ''));
                 })
                 .catch(function() {
-                    result.style.display = 'block';
-                    result.className = 'fpmail-alert fpmail-alert-danger';
+                    result.classList.add('is-visible');
+                    result.className = 'fpmail-alert fpmail-test-result fpmail-alert-danger';
                     result.innerHTML = '<span class="dashicons dashicons-warning"></span> <?php echo esc_js(__('Errore di connessione.', 'fp-fpmail')); ?>';
                 })
                 .finally(function() { btn.disabled = false; });
