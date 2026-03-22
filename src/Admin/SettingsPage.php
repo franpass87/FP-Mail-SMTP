@@ -34,7 +34,10 @@ final class SettingsPage
      */
     public function enqueueAssets(string $hook): void
     {
-        if (strpos($hook, 'fp-fpmail') === false) {
+        $page = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
+        $is_our_page = (strpos($hook, 'fp-fpmail') !== false)
+            || in_array($page, ['fp-fpmail', 'fp-fpmail-logs'], true);
+        if (!$is_our_page) {
             return;
         }
         wp_enqueue_style(
