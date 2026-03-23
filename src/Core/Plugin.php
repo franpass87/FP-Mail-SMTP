@@ -118,7 +118,7 @@ final class Plugin
             'fp-fpmail',
             [$this, 'renderSettingsPage'],
             'dashicons-email-alt',
-            80
+            '56.5'
         );
 
         add_submenu_page(
