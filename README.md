@@ -1,6 +1,6 @@
 # FP Mail SMTP
 
-[![version](https://img.shields.io/badge/version-1.1.3-blue.svg)](https://github.com/franpass87/FP-Mail-SMTP)
+[![version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/franpass87/FP-Mail-SMTP)
 
 Plugin WordPress per la configurazione SMTP e il log di tutte le email in uscita. Compatibile con tutti i plugin FP, WooCommerce e qualsiasi plugin che usa `wp_mail()`.
 
@@ -13,6 +13,7 @@ Plugin WordPress per la configurazione SMTP e il log di tutte le email in uscita
 - **Pagina Log**: filtri per stato e sorgente, ricerca, paginazione, dettaglio singola email
 - **Retention configurabile**: pulizia automatica dei log (1–365 giorni)
 - **Email di test**: verifica la configurazione con un click
+- **Branding email FP**: wrapper HTML unificato (stile FP Experiences) configurabile in Impostazioni; altri plugin possono usare `fp_fpmail_brand_html()` o il filtro `fp_fpmail_brand_html` sul corpo HTML senza cambiare i testi
 
 ## Requisiti
 
@@ -59,8 +60,9 @@ Non modifica il flusso di invio: si aggancia a `phpmailer_init` per SMTP e a `wp
 | Elemento | Valore |
 |----------|--------|
 | Tabella DB | `wp_fp_fpmail_logs` |
-| Opzioni | `fp_fpmail_smtp_*`, `fp_fpmail_from_*`, `fp_fpmail_log_*` |
-| Hook | `phpmailer_init`, `wp_mail_succeeded`, `wp_mail_failed` |
+| Opzioni | `fp_fpmail_smtp_*`, `fp_fpmail_from_*`, `fp_fpmail_log_*`, `fp_fpmail_email_branding`, `fp_fpmail_branding_enabled` |
+| Hook | `phpmailer_init`, `wp_mail_succeeded`, `wp_mail_failed`, filtro `fp_fpmail_brand_html` |
+| API | Funzione `fp_fpmail_brand_html( string $html, array $args = [] ): string` |
 | Cron | `fp_fpmail_cleanup_logs` (giornaliero) |
 
 ## Autore

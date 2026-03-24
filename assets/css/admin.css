@@ -483,3 +483,22 @@ body.fp-fpmail_page_fp-fpmail-logs #wpbody-content > .wrap.fpmail-admin-page {
 .fpmail-table .fpmail-col-source { width: 80px; }
 .fpmail-table .fpmail-col-status { width: 90px; }
 .fpmail-table .fpmail-col-actions { width: 100px; }
+
+.fpmail-field--full {
+    grid-column: 1 / -1;
+}
+
+.fpmail-email-preview-shell {
+    margin-top: 0.5rem;
+    border: 1px solid var(--fpdms-border);
+    border-radius: var(--radius-md);
+    overflow: auto;
+    max-height: 480px;
+    background: #fff;
+}
+
+.fpmail-email-preview-note {
+    margin-top: 0.65rem;
+    color: var(--fpdms-text-muted);
+    font-size: 13px;
+}

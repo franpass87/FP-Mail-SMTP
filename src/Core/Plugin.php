@@ -12,6 +12,7 @@ namespace FP\Fpmail\Core;
 use FP\Fpmail\Admin\LogPage;
 use FP\Fpmail\Admin\SettingsPage;
 use FP\Fpmail\Api\BrevoWebhookController;
+use FP\Fpmail\Branding\BrandingService;
 use FP\Fpmail\Mail\SmtpConfigurator;
 
 /**
@@ -183,6 +184,7 @@ final class Plugin
      */
     public function registerHooks(): void
     {
+        (new BrandingService())->register();
         (new SmtpConfigurator())->register();
         (new MailLogger())->register();
     }

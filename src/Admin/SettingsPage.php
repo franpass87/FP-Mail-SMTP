@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace FP\Fpmail\Admin;
 
+use FP\Fpmail\Branding\BrandingService;
+
 /**
  * Pagina admin per le impostazioni FP Mail SMTP.
  */
@@ -89,6 +91,15 @@ final class SettingsPage
                 update_option('fp_fpmail_brevo_webhook_token', wp_generate_password(32, true, true));
             }
         }
+
+        $branding_on = isset($_POST['fp_fpmail_branding_enabled'])
+            && sanitize_text_field(wp_unslash((string) $_POST['fp_fpmail_branding_enabled'])) === '1';
+        update_option(BrandingService::OPTION_ENABLED, $branding_on ? '1' : '0');
+
+        $raw_branding = isset($_POST['fp_fpmail_email_branding']) && is_array($_POST['fp_fpmail_email_branding'])
+            ? wp_unslash($_POST['fp_fpmail_email_branding'])
+            : [];
+        update_option(BrandingService::OPTION_BRANDING, BrandingService::sanitizeBrandingInput($raw_branding));
 
         wp_safe_redirect(
             add_query_arg(['page' => 'fp-fpmail', 'saved' => '1'], admin_url('admin.php'))
@@ -262,6 +273,94 @@ final class SettingsPage
                                        class="regular-text">
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <?php
+                $branding = get_option(BrandingService::OPTION_BRANDING, []);
+                $branding = is_array($branding) ? $branding : [];
+                $accent_val = isset($branding['accent_color']) && is_string($branding['accent_color']) && $branding['accent_color'] !== ''
+                    ? (string) $branding['accent_color']
+                    : '#0b7285';
+                $branding_enabled = get_option(BrandingService::OPTION_ENABLED, '1') === '1';
+                ?>
+                <div class="fpmail-card">
+                    <div class="fpmail-card-header">
+                        <div class="fpmail-card-header-left">
+                            <span class="dashicons dashicons-art"></span>
+                            <h2><?php esc_html_e('Branding email (plugin FP)', 'fp-fpmail'); ?></h2>
+                        </div>
+                    </div>
+                    <div class="fpmail-card-body">
+                        <p class="description"><?php esc_html_e('Layout unificato (stile FP Experiences) per le email HTML: gli altri plugin possono avvolgere il corpo messaggio tramite il filtro fp_fpmail_brand_html o la funzione fp_fpmail_brand_html() senza cambiare i testi.', 'fp-fpmail'); ?></p>
+                        <div class="fpmail-toggle-row">
+                            <div class="fpmail-toggle-info">
+                                <strong><?php esc_html_e('Applica wrapper branding', 'fp-fpmail'); ?></strong>
+                                <span><?php esc_html_e('Se disattivo, il filtro restituisce l’HTML ricevuto senza modifiche.', 'fp-fpmail'); ?></span>
+                            </div>
+                            <label class="fpmail-toggle">
+                                <input type="checkbox" name="fp_fpmail_branding_enabled" value="1" <?php checked($branding_enabled); ?>>
+                                <span class="fpmail-toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="fpmail-fields-grid fpmail-field-spacing">
+                            <div class="fpmail-field">
+                                <label for="fp_fpmail_branding_logo"><?php esc_html_e('URL logo', 'fp-fpmail'); ?></label>
+                                <input type="text" id="fp_fpmail_branding_logo" name="fp_fpmail_email_branding[logo]"
+                                       value="<?php echo esc_attr((string) ($branding['logo'] ?? '')); ?>"
+                                       placeholder="https://…" class="regular-text">
+                                <span class="fpmail-hint"><?php esc_html_e('URL assoluta; lasciare vuoto per mostrare solo il titolo.', 'fp-fpmail'); ?></span>
+                            </div>
+                            <div class="fpmail-field">
+                                <label for="fp_fpmail_branding_logo_w"><?php esc_html_e('Larghezza max logo (px)', 'fp-fpmail'); ?></label>
+                                <input type="number" id="fp_fpmail_branding_logo_w" name="fp_fpmail_email_branding[logo_width]"
+                                       value="<?php echo esc_attr((string) (int) ($branding['logo_width'] ?? 0)); ?>"
+                                       min="0" max="600" class="small-text" placeholder="180">
+                            </div>
+                            <div class="fpmail-field">
+                                <label for="fp_fpmail_branding_logo_h"><?php esc_html_e('Altezza max logo (px)', 'fp-fpmail'); ?></label>
+                                <input type="number" id="fp_fpmail_branding_logo_h" name="fp_fpmail_email_branding[logo_height]"
+                                       value="<?php echo esc_attr((string) (int) ($branding['logo_height'] ?? 0)); ?>"
+                                       min="0" max="400" class="small-text"
+                                       placeholder="<?php esc_attr_e('Opzionale', 'fp-fpmail'); ?>">
+                            </div>
+                            <div class="fpmail-field">
+                                <label for="fp_fpmail_branding_accent"><?php esc_html_e('Colore accent', 'fp-fpmail'); ?></label>
+                                <input type="text" id="fp_fpmail_branding_accent" name="fp_fpmail_email_branding[accent_color]"
+                                       value="<?php echo esc_attr($accent_val); ?>"
+                                       pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                                       class="regular-text" placeholder="#0b7285">
+                            </div>
+                            <div class="fpmail-field">
+                                <label for="fp_fpmail_branding_header"><?php esc_html_e('Titolo header', 'fp-fpmail'); ?></label>
+                                <input type="text" id="fp_fpmail_branding_header" name="fp_fpmail_email_branding[header_text]"
+                                       value="<?php echo esc_attr((string) ($branding['header_text'] ?? '')); ?>"
+                                       class="regular-text"
+                                       placeholder="<?php echo esc_attr(get_bloginfo('name', 'display')); ?>">
+                            </div>
+                            <div class="fpmail-field fpmail-field--full">
+                                <label for="fp_fpmail_branding_footer"><?php esc_html_e('Testo footer', 'fp-fpmail'); ?></label>
+                                <textarea id="fp_fpmail_branding_footer" name="fp_fpmail_email_branding[footer_text]" rows="3"
+                                          class="large-text"><?php echo esc_textarea((string) ($branding['footer_text'] ?? '')); ?></textarea>
+                                <span class="fpmail-hint"><?php esc_html_e('Se vuoto, viene usato un testo predefinito traducibile.', 'fp-fpmail'); ?></span>
+                            </div>
+                        </div>
+                        <?php
+                        $preview_inner = '<p style="margin:0 0 12px;">' . esc_html__(
+                            'Questo è un esempio di contenuto: il plugin FP invia solo questa parte; FP Mail SMTP aggiunge header, colori e footer.',
+                            'fp-fpmail'
+                        ) . '</p><p style="margin:0;"><strong>' . esc_html__('Anteprima', 'fp-fpmail') . '</strong></p>';
+                        $preview_svc = new BrandingService();
+                        $preview_html = $preview_svc->wrap($preview_inner);
+                        ?>
+                        <p class="description fpmail-field-spacing"><strong><?php esc_html_e('Anteprima', 'fp-fpmail'); ?></strong></p>
+                        <div class="fpmail-email-preview-shell">
+                            <?php
+                            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML email trusted, generato da BrandingService con escape interni.
+                            echo $preview_html;
+                            ?>
+                        </div>
+                        <p class="fpmail-email-preview-note"><?php esc_html_e('L’anteprima riflette le impostazioni salvate. Salva il modulo dopo le modifiche per aggiornare anteprima e invii dai plugin che usano fp_fpmail_brand_html.', 'fp-fpmail'); ?></p>
                     </div>
                 </div>
 

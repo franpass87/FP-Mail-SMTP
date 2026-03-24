@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0] - 2026-03-24
+
+### Added
+
+- Branding email unificato (layout allineato a FP Experiences): opzioni logo, dimensioni, colore accent, header, footer; anteprima in Impostazioni.
+- Filtro `fp_fpmail_brand_html` e funzione `fp_fpmail_brand_html()` per uso da altri plugin FP (corpo messaggio invariato, solo wrapper grafico).
+- Opzioni `fp_fpmail_email_branding`, `fp_fpmail_branding_enabled`; toggle per disattivare il wrapper senza disinstallare il plugin.
+
 ## [1.1.4] - 2026-03-23
 
 ### Changed

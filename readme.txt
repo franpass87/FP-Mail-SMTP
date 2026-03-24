@@ -4,7 +4,7 @@ Contributors: franpass87
 Tags: smtp, email, mail, log
 Requires at least: 6.0
 Tested up to: 6.7
-Stable tag: 1.1.4
+Stable tag: 1.2.0
 Requires PHP: 8.0
 License: Proprietary
 License URI: https://francescopasseri.com
@@ -23,9 +23,14 @@ Plugin WordPress per la configurazione SMTP e il log di tutte le email in uscita
 * Pagina Log: filtri per stato, ricerca, paginazione, dettaglio singola email
 * Retention configurabile: pulizia automatica dei log (1–365 giorni)
 * Email di test
+* Branding email unificato per plugin FP (filtro fp_fpmail_brand_html, anteprima in Impostazioni)
 
 == Changelog ==
 
+
+= 1.2.0 = (2026-03-24)
+* Branding email unificato (layout FP Experiences): logo, colori, header, footer, anteprima.
+* Filtro `fp_fpmail_brand_html` e funzione `fp_fpmail_brand_html()` per gli altri plugin FP.
 
 = 1.1.4 = (2026-03-23)
 * Menu position 56.5 per ordine alfabetico FP.
