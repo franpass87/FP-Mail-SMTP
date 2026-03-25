@@ -263,6 +263,9 @@ final class BrandingService
      *
      * @param string $h0 Primo stop gradient header (esc_attred).
      * @param string $h1 Secondo stop gradient header (esc_attred).
+     *
+     * In dark mode, il footer HTML personalizzato può contenere colori inline (es. nero): le regole su
+     * `.fp-fpmail-email-footer-html` e discendenti con `!important` li sovrascrivono per contrasto leggibile.
      */
     private static function darkEmailCssRules(string $selector_prefix, string $h0, string $h1): string
     {
@@ -275,6 +278,8 @@ final class BrandingService
             . $selector_prefix . '.fp-fpmail-email-body a{color:#38bdf8!important;}'
             . $selector_prefix . '.fp-fpmail-email-footer{background-color:#151922!important;color:#94a3b8!important;border-top-color:#363d4d!important;}'
             . $selector_prefix . '.fp-fpmail-email-footer .fp-fpmail-email-footer-text{color:#94a3b8!important;}'
+            . $selector_prefix . '.fp-fpmail-email-footer .fp-fpmail-email-footer-html,'
+            . $selector_prefix . '.fp-fpmail-email-footer .fp-fpmail-email-footer-html *{color:#cbd5e1!important;}'
             . $selector_prefix . '.fp-fpmail-email-footer a,' . $selector_prefix . '.fp-fpmail-email-footer-html a{color:#7dd3fc!important;}';
     }
 

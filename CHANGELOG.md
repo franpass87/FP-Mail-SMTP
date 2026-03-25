@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.1] - 2026-03-24
+
+### Fixed
+
+- **Dark mode / anteprima tema scuro**: il footer con HTML personalizzato (`wp_kses_post`) spesso include colori **inline** (nero/grigio scuro) che restavano invariati sul fondo scuro. Aggiunte regole CSS con `!important` su `.fp-fpmail-email-footer-html` e discendenti (`*`); i link restano con colore dedicato.
+
 ## [1.3.0] - 2026-03-24
 
 ### Added
