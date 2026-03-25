@@ -1,6 +1,6 @@
 # FP Mail SMTP
 
-[![version](https://img.shields.io/badge/version-1.2.3-blue.svg)](https://github.com/franpass87/FP-Mail-SMTP)
+[![version](https://img.shields.io/badge/version-1.3.0-blue.svg)](https://github.com/franpass87/FP-Mail-SMTP)
 
 Plugin WordPress per la configurazione SMTP e il log di tutte le email in uscita. Compatibile con tutti i plugin FP, WooCommerce e qualsiasi plugin che usa `wp_mail()`.
 
@@ -9,7 +9,7 @@ Plugin WordPress per la configurazione SMTP e il log di tutte le email in uscita
 - **Configurazione SMTP**: host, porta, crittografia (SSL/TLS), autenticazione
 - **Mittente predefinito**: override di From email e From name
 - **Log completo**: registrazione di tutte le email inviate e fallite (wp_mail)
-- **Integrazione Brevo**: webhook per eventi transactional — log unificato wp_mail + Brevo
+- **Integrazione Brevo**: log eventi transactional da **API** (predefinito, chiave da FP Marketing Tracking Layer) oppure webhook; tag sito dal layer per filtrare gli eventi in multi-installazione
 - **Pagina Log**: filtri per stato e sorgente, ricerca, paginazione, dettaglio singola email
 - **Retention configurabile**: pulizia automatica dei log (1–365 giorni)
 - **Email di test**: verifica la configurazione con un click
@@ -60,10 +60,10 @@ Non modifica il flusso di invio: si aggancia a `phpmailer_init` per SMTP e a `wp
 | Elemento | Valore |
 |----------|--------|
 | Tabella DB | `wp_fp_fpmail_logs` |
-| Opzioni | `fp_fpmail_smtp_*`, `fp_fpmail_from_*`, `fp_fpmail_log_*`, `fp_fpmail_email_branding`, `fp_fpmail_branding_enabled` |
+| Opzioni | `fp_fpmail_smtp_*`, `fp_fpmail_from_*`, `fp_fpmail_log_*`, `fp_fpmail_brevo_*`, `fp_fpmail_email_branding`, `fp_fpmail_branding_enabled` |
 | Hook | `phpmailer_init`, `wp_mail_succeeded`, `wp_mail_failed`, filtro `fp_fpmail_brand_html` |
-| API | Funzione `fp_fpmail_brand_html( string $html, array $args = [] ): string` |
-| Cron | `fp_fpmail_cleanup_logs` (giornaliero) |
+| API | Funzione `fp_fpmail_brand_html( string $html, array $args = [] ): string`; REST webhook Brevo (solo se modalità webhook) |
+| Cron | `fp_fpmail_cleanup_logs` (giornaliero); `fp_fpmail_brevo_sync` (intervallo 5/15/30 min in modalità API) |
 
 ## Autore
 

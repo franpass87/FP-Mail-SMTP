@@ -29,6 +29,9 @@ $options = [
     'fp_fpmail_log_retention_days',
     'fp_fpmail_log_enabled',
     'fp_fpmail_brevo_log_enabled',
+    'fp_fpmail_brevo_ingest_method',
+    'fp_fpmail_brevo_sync_interval_sec',
+    'fp_fpmail_brevo_sync_last_end_date',
     'fp_fpmail_brevo_webhook_token',
     'fp_fpmail_db_version',
     'fp_fpmail_email_branding',
@@ -41,3 +44,4 @@ foreach ($options as $option) {
 
 // Rimuovi cron
 wp_clear_scheduled_hook('fp_fpmail_cleanup_logs');
+wp_clear_scheduled_hook('fp_fpmail_brevo_sync');

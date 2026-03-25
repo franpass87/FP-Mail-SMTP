@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace FP\Fpmail\Admin;
 
 use FP\Fpmail\Branding\BrandingService;
+use FP\Fpmail\Brevo\BrevoTransactionalSyncService;
 
 /**
  * Pagina admin per le impostazioni FP Mail SMTP.
@@ -91,6 +92,7 @@ final class SettingsPage
             'fp_fpmail_log_retention_days' => fn ($v) => max(1, min(365, absint($v))),
             'fp_fpmail_log_enabled' => fn ($v) => $v === '1' ? '1' : '0',
             'fp_fpmail_brevo_log_enabled' => fn ($v) => $v === '1' ? '1' : '0',
+            'fp_fpmail_brevo_ingest_method' => static fn ($v): string => $v === 'webhook' ? 'webhook' : 'api',
         ];
 
         foreach ($fields as $key => $sanitizer) {
@@ -99,19 +101,30 @@ final class SettingsPage
             update_option($key, $value);
         }
 
+        if (isset($_POST['fp_fpmail_brevo_sync_interval_sec'])) {
+            $i = absint(wp_unslash($_POST['fp_fpmail_brevo_sync_interval_sec']));
+            update_option(
+                'fp_fpmail_brevo_sync_interval_sec',
+                in_array($i, [300, 900, 1800], true) ? (string) $i : '900'
+            );
+        }
+
         // Password: cifrata in base64
         if (isset($_POST['fp_fpmail_smtp_pass']) && $_POST['fp_fpmail_smtp_pass'] !== '') {
             $pass = sanitize_text_field(wp_unslash($_POST['fp_fpmail_smtp_pass']));
             update_option('fp_fpmail_smtp_pass', base64_encode($pass));
         }
 
-        // Brevo: genera token se abilitato e vuoto
-        if (get_option('fp_fpmail_brevo_log_enabled', '0') === '1') {
+        // Brevo: token webhook solo in modalità webhook
+        if (get_option('fp_fpmail_brevo_log_enabled', '0') === '1'
+            && get_option('fp_fpmail_brevo_ingest_method', 'api') === 'webhook') {
             $token = get_option('fp_fpmail_brevo_webhook_token', '');
             if ($token === '') {
                 update_option('fp_fpmail_brevo_webhook_token', wp_generate_password(32, true, true));
             }
         }
+
+        (new BrevoTransactionalSyncService())->reschedule_after_settings_save();
 
         $branding_on = isset($_POST['fp_fpmail_branding_enabled'])
             && sanitize_text_field(wp_unslash((string) $_POST['fp_fpmail_branding_enabled'])) === '1';
@@ -469,8 +482,18 @@ final class SettingsPage
 
                 <?php
                 $brevoEnabled = get_option('fp_fpmail_brevo_log_enabled', '0') === '1';
+                $brevoIngest = get_option('fp_fpmail_brevo_ingest_method', 'api') === 'webhook' ? 'webhook' : 'api';
+                $brevoInterval = (int) get_option('fp_fpmail_brevo_sync_interval_sec', 900);
+                if (!in_array($brevoInterval, [300, 900, 1800], true)) {
+                    $brevoInterval = 900;
+                }
                 $brevoToken = get_option('fp_fpmail_brevo_webhook_token', '');
                 $brevoWebhookUrl = $brevoToken !== '' ? rest_url('fp/fpmail/v1/brevo-webhook') . '?token=' . rawurlencode($brevoToken) : '';
+                $trackingBrevoOk = function_exists('fp_tracking_get_brevo_settings');
+                $trackingSettings = $trackingBrevoOk ? fp_tracking_get_brevo_settings() : [];
+                $trackingKeyOk = $trackingBrevoOk
+                    && !empty($trackingSettings['enabled'])
+                    && trim((string) ($trackingSettings['api_key'] ?? '')) !== '';
                 ?>
                 <div class="fpmail-card">
                     <div class="fpmail-card-header">
@@ -483,11 +506,11 @@ final class SettingsPage
                         </span>
                     </div>
                     <div class="fpmail-card-body">
-                        <p class="description"><?php esc_html_e('Mostra nel log anche le email inviate tramite Brevo (API Transactional), incluse quelle da FP-Restaurant-Reservations, FP-Experiences, FP-Forms quando usano Brevo come canale.', 'fp-fpmail'); ?></p>
+                        <p class="description"><?php esc_html_e('Mostra nel log le email transactional inviate via Brevo (FP Experiences, FP Restaurant, ecc.). La modalità predefinita usa l’API Brevo e la stessa API key configurata in FP Marketing Tracking Layer.', 'fp-fpmail'); ?></p>
                         <div class="fpmail-toggle-row">
                             <div class="fpmail-toggle-info">
                                 <strong><?php esc_html_e('Abilita log eventi Brevo', 'fp-fpmail'); ?></strong>
-                                <span><?php esc_html_e('Ricevi eventi via webhook e visualizzali nel log unificato', 'fp-fpmail'); ?></span>
+                                <span><?php esc_html_e('Registra invii e stati nel log unificato', 'fp-fpmail'); ?></span>
                             </div>
                             <label class="fpmail-toggle">
                                 <input type="checkbox" name="fp_fpmail_brevo_log_enabled" value="1"
@@ -495,7 +518,29 @@ final class SettingsPage
                                 <span class="fpmail-toggle-slider"></span>
                             </label>
                         </div>
-                        <?php if ($brevoEnabled && $brevoWebhookUrl !== '') : ?>
+                        <div class="fpmail-field fpmail-field-spacing">
+                            <label for="fp_fpmail_brevo_ingest_method"><?php esc_html_e('Modalità ricezione eventi', 'fp-fpmail'); ?></label>
+                            <select id="fp_fpmail_brevo_ingest_method" name="fp_fpmail_brevo_ingest_method" class="regular-text">
+                                <option value="api" <?php selected($brevoIngest, 'api'); ?>><?php esc_html_e('API (polling, consigliato — usa FP Tracking)', 'fp-fpmail'); ?></option>
+                                <option value="webhook" <?php selected($brevoIngest, 'webhook'); ?>><?php esc_html_e('Webhook (legacy)', 'fp-fpmail'); ?></option>
+                            </select>
+                            <p class="fpmail-hint"><?php esc_html_e('In modalità API il sito scarica periodicamente gli eventi da Brevo; imposta il tag transactional per sito in FP Tracking per separare più installazioni sullo stesso account.', 'fp-fpmail'); ?></p>
+                        </div>
+                        <div class="fpmail-field fpmail-field-spacing" id="fpmail-brevo-api-interval-wrap" style="<?php echo ($brevoEnabled && $brevoIngest === 'api') ? '' : 'display:none;'; ?>">
+                            <label for="fp_fpmail_brevo_sync_interval_sec"><?php esc_html_e('Intervallo sincronizzazione API', 'fp-fpmail'); ?></label>
+                            <select id="fp_fpmail_brevo_sync_interval_sec" name="fp_fpmail_brevo_sync_interval_sec" class="regular-text">
+                                <option value="300" <?php selected($brevoInterval, 300); ?>><?php esc_html_e('5 minuti', 'fp-fpmail'); ?></option>
+                                <option value="900" <?php selected($brevoInterval, 900); ?>><?php esc_html_e('15 minuti', 'fp-fpmail'); ?></option>
+                                <option value="1800" <?php selected($brevoInterval, 1800); ?>><?php esc_html_e('30 minuti', 'fp-fpmail'); ?></option>
+                            </select>
+                        </div>
+                        <?php if ($brevoEnabled && $brevoIngest === 'api' && !$trackingKeyOk) : ?>
+                            <div class="fpmail-alert fpmail-alert-warning" style="margin-top:12px;">
+                                <span class="dashicons dashicons-warning"></span>
+                                <?php esc_html_e('Attiva Brevo Server-Side e inserisci l’API key in FP Marketing Tracking Layer affinché la sync funzioni.', 'fp-fpmail'); ?>
+                            </div>
+                        <?php endif; ?>
+                        <?php if ($brevoEnabled && $brevoIngest === 'webhook' && $brevoWebhookUrl !== '') : ?>
                             <div class="fpmail-field fpmail-field-spacing">
                                 <label><?php esc_html_e('URL Webhook da configurare in Brevo', 'fp-fpmail'); ?></label>
                                 <div class="fpmail-brevo-url-row">

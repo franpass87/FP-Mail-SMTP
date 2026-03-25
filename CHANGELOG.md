@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.0] - 2026-03-24
+
+### Added
+
+- Log eventi Brevo transactional: **sincronizzazione via API** (`GET /v3/smtp/statistics/events`) con chiave da **FP Marketing Tracking Layer**; cron personalizzabile (5 / 15 / 30 minuti); filtro per tag sito (`transactional_site_tag` nel layer) e dedup su message id + evento.
+- Opzioni `fp_fpmail_brevo_ingest_method` (predefinito **API**) e `fp_fpmail_brevo_sync_interval_sec`; cursore `fp_fpmail_brevo_sync_last_end_date` per finestra temporale con overlap.
+- Servizi `BrevoTransactionalSyncService` e `BrevoLogIngestor` (mapping eventi API ↔ stati log condivisi col webhook).
+
+### Changed
+
+- Webhook Brevo: accettato solo se modalità **webhook** esplicita; in modalità API il token non è valido per l’ingest.
+
 ## [1.2.3] - 2026-03-24
 
 ### Added

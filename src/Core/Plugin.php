@@ -12,6 +12,7 @@ namespace FP\Fpmail\Core;
 use FP\Fpmail\Admin\LogPage;
 use FP\Fpmail\Admin\SettingsPage;
 use FP\Fpmail\Api\BrevoWebhookController;
+use FP\Fpmail\Brevo\BrevoTransactionalSyncService;
 use FP\Fpmail\Branding\BrandingService;
 use FP\Fpmail\Mail\SmtpConfigurator;
 
@@ -49,6 +50,8 @@ final class Plugin
         add_action('admin_menu', [$this, 'registerAdminMenu']);
         add_action('admin_init', [$this, 'registerSettings']);
         add_action('wp_loaded', [$this, 'registerHooks'], 5);
+
+        (new BrevoTransactionalSyncService())->register();
 
         // Cron cleanup logs
         add_action('fp_fpmail_cleanup_logs', [$this, 'cleanupOldLogs']);
@@ -216,6 +219,7 @@ final class Plugin
         if (!wp_next_scheduled('fp_fpmail_cleanup_logs')) {
             wp_schedule_event(time(), 'daily', 'fp_fpmail_cleanup_logs');
         }
+        (new BrevoTransactionalSyncService())->maybe_schedule();
     }
 
     /**
@@ -224,6 +228,7 @@ final class Plugin
     public function onDeactivate(): void
     {
         wp_clear_scheduled_hook('fp_fpmail_cleanup_logs');
+        (new BrevoTransactionalSyncService())->clear_schedule();
     }
 
     /**
