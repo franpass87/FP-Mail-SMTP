@@ -502,3 +502,47 @@ body.fp-fpmail_page_fp-fpmail-logs #wpbody-content > .wrap.fpmail-admin-page {
     color: var(--fpdms-text-muted);
     font-size: 13px;
 }
+
+/* Branding: logo da Media + accent picker */
+.fpmail-branding-logo-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+.fpmail-branding-logo-preview {
+    margin: 0.5rem 0 0.75rem;
+}
+.fpmail-branding-logo-preview img {
+    display: block;
+    max-width: 150px;
+    max-height: 150px;
+    height: auto;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--fpdms-border);
+    object-fit: contain;
+    background: var(--fpdms-bg-light);
+}
+.fpmail-branding-url-label {
+    display: block;
+    margin-top: 0.5rem;
+    font-weight: 600;
+}
+.fpmail-branding-accent-inputs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.65rem;
+}
+.fpmail-branding-accent-inputs input[type="color"] {
+    width: 48px;
+    height: 36px;
+    padding: 2px;
+    border: 1px solid var(--fpdms-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    background: var(--fpdms-bg-white);
+}
+.fpmail-branding-accent-hex {
+    max-width: 10rem;
+}

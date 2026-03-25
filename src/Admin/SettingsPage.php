@@ -48,6 +48,27 @@ final class SettingsPage
             [],
             FP_FPMAIL_VERSION
         );
+
+        $is_settings_screen = $page === 'fp-fpmail' || $hook === 'toplevel_page_fp-fpmail';
+        if ($is_settings_screen) {
+            wp_enqueue_media();
+            wp_enqueue_script(
+                'fp-fpmail-branding-settings',
+                FP_FPMAIL_URL . 'assets/js/branding-settings.js',
+                ['jquery', 'media-upload'],
+                FP_FPMAIL_VERSION,
+                true
+            );
+            wp_localize_script(
+                'fp-fpmail-branding-settings',
+                'fpFpmailBranding',
+                [
+                    'selectLogo' => __('Scegli dalla libreria media', 'fp-fpmail'),
+                    'titleLogo' => __('Logo email — immagine', 'fp-fpmail'),
+                    'useImage' => __('Usa questa immagine', 'fp-fpmail'),
+                ]
+            );
+        }
     }
 
     /**
@@ -279,9 +300,13 @@ final class SettingsPage
                 <?php
                 $branding = get_option(BrandingService::OPTION_BRANDING, []);
                 $branding = is_array($branding) ? $branding : [];
-                $accent_val = isset($branding['accent_color']) && is_string($branding['accent_color']) && $branding['accent_color'] !== ''
-                    ? (string) $branding['accent_color']
-                    : '#0b7285';
+                $accent_val = BrandingService::normalizedAccentColor((string) ($branding['accent_color'] ?? ''));
+                $logo_attachment_id = (int) ($branding['logo_attachment_id'] ?? 0);
+                $logo_preview_url = '';
+                if ($logo_attachment_id > 0 && wp_attachment_is_image($logo_attachment_id)) {
+                    $thumb = wp_get_attachment_image_url($logo_attachment_id, 'thumbnail');
+                    $logo_preview_url = is_string($thumb) ? $thumb : '';
+                }
                 $branding_enabled = get_option(BrandingService::OPTION_ENABLED, '1') === '1';
                 ?>
                 <div class="fpmail-card">
@@ -304,12 +329,26 @@ final class SettingsPage
                             </label>
                         </div>
                         <div class="fpmail-fields-grid fpmail-field-spacing">
-                            <div class="fpmail-field">
-                                <label for="fp_fpmail_branding_logo"><?php esc_html_e('URL logo', 'fp-fpmail'); ?></label>
-                                <input type="text" id="fp_fpmail_branding_logo" name="fp_fpmail_email_branding[logo]"
+                            <div class="fpmail-field fpmail-field--full fpmail-branding-logo-block">
+                                <label><?php esc_html_e('Logo', 'fp-fpmail'); ?></label>
+                                <input type="hidden" name="fp_fpmail_email_branding[logo_attachment_id]" id="fp_fpmail_branding_logo_id"
+                                       value="<?php echo esc_attr((string) $logo_attachment_id); ?>">
+                                <div class="fpmail-branding-logo-actions">
+                                    <button type="button" class="button" id="fpmail-branding-select-logo"><?php esc_html_e('Scegli dalla libreria media', 'fp-fpmail'); ?></button>
+                                    <button type="button" class="button" id="fpmail-branding-remove-logo"><?php esc_html_e('Rimuovi immagine da libreria', 'fp-fpmail'); ?></button>
+                                </div>
+                                <div class="fpmail-branding-logo-preview" id="fpmail-branding-logo-preview" style="<?php echo $logo_preview_url === '' ? 'display:none;' : ''; ?>">
+                                    <?php
+                                    if ($logo_preview_url !== '') {
+                                        echo '<img src="' . esc_url($logo_preview_url) . '" alt="" width="150" height="150" loading="lazy" />';
+                                    }
+                                    ?>
+                                </div>
+                                <label for="fp_fpmail_branding_logo" class="fpmail-branding-url-label"><?php esc_html_e('Oppure URL logo (assoluto)', 'fp-fpmail'); ?></label>
+                                <input type="url" id="fp_fpmail_branding_logo" name="fp_fpmail_email_branding[logo]"
                                        value="<?php echo esc_attr((string) ($branding['logo'] ?? '')); ?>"
                                        placeholder="https://…" class="regular-text">
-                                <span class="fpmail-hint"><?php esc_html_e('URL assoluta; lasciare vuoto per mostrare solo il titolo.', 'fp-fpmail'); ?></span>
+                                <span class="fpmail-hint"><?php esc_html_e('L’immagine da Media ha priorità sull’URL. Lasciare vuoti entrambi per mostrare solo il titolo (senza logo).', 'fp-fpmail'); ?></span>
                             </div>
                             <div class="fpmail-field">
                                 <label for="fp_fpmail_branding_logo_w"><?php esc_html_e('Larghezza max logo (px)', 'fp-fpmail'); ?></label>
@@ -324,12 +363,19 @@ final class SettingsPage
                                        min="0" max="400" class="small-text"
                                        placeholder="<?php esc_attr_e('Opzionale', 'fp-fpmail'); ?>">
                             </div>
-                            <div class="fpmail-field">
+                            <div class="fpmail-field fpmail-branding-accent-row">
                                 <label for="fp_fpmail_branding_accent"><?php esc_html_e('Colore accent', 'fp-fpmail'); ?></label>
-                                <input type="text" id="fp_fpmail_branding_accent" name="fp_fpmail_email_branding[accent_color]"
-                                       value="<?php echo esc_attr($accent_val); ?>"
-                                       pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
-                                       class="regular-text" placeholder="#0b7285">
+                                <div class="fpmail-branding-accent-inputs">
+                                    <input type="color" id="fp_fpmail_branding_accent_picker"
+                                           value="<?php echo esc_attr($accent_val); ?>"
+                                           aria-label="<?php esc_attr_e('Selettore colore accent', 'fp-fpmail'); ?>"
+                                           title="<?php esc_attr_e('Selettore colore', 'fp-fpmail'); ?>">
+                                    <input type="text" id="fp_fpmail_branding_accent" name="fp_fpmail_email_branding[accent_color]"
+                                           value="<?php echo esc_attr($accent_val); ?>"
+                                           class="regular-text fpmail-branding-accent-hex" placeholder="#0b7285"
+                                           spellcheck="false">
+                                </div>
+                                <span class="fpmail-hint"><?php esc_html_e('Usa il selettore o incolla un hex (#rrggbb o #rgb).', 'fp-fpmail'); ?></span>
                             </div>
                             <div class="fpmail-field">
                                 <label for="fp_fpmail_branding_header"><?php esc_html_e('Titolo header', 'fp-fpmail'); ?></label>
@@ -337,12 +383,13 @@ final class SettingsPage
                                        value="<?php echo esc_attr((string) ($branding['header_text'] ?? '')); ?>"
                                        class="regular-text"
                                        placeholder="<?php echo esc_attr(get_bloginfo('name', 'display')); ?>">
+                                <span class="fpmail-hint"><?php esc_html_e('Con logo: lasciare vuoto per non mostrare il titolo nel banner (resta il nome sito nel preheader). Senza logo: se vuoto viene usato il nome del sito.', 'fp-fpmail'); ?></span>
                             </div>
                             <div class="fpmail-field fpmail-field--full">
-                                <label for="fp_fpmail_branding_footer"><?php esc_html_e('Testo footer', 'fp-fpmail'); ?></label>
-                                <textarea id="fp_fpmail_branding_footer" name="fp_fpmail_email_branding[footer_text]" rows="3"
-                                          class="large-text"><?php echo esc_textarea((string) ($branding['footer_text'] ?? '')); ?></textarea>
-                                <span class="fpmail-hint"><?php esc_html_e('Se vuoto, viene usato un testo predefinito traducibile.', 'fp-fpmail'); ?></span>
+                                <label for="fp_fpmail_branding_footer"><?php esc_html_e('Footer (HTML consentito)', 'fp-fpmail'); ?></label>
+                                <textarea id="fp_fpmail_branding_footer" name="fp_fpmail_email_branding[footer_text]" rows="5"
+                                          class="large-text code"><?php echo esc_textarea((string) ($branding['footer_text'] ?? '')); ?></textarea>
+                                <span class="fpmail-hint"><?php esc_html_e('Stessi tag consentiti dei post (link, grassetto, paragrafi, liste). Se vuoto, testo predefinito traducibile.', 'fp-fpmail'); ?></span>
                             </div>
                         </div>
                         <?php

@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.1] - 2026-03-24
+
+### Added
+
+- Branding: logo da Media Library (`logo_attachment_id`) con anteprima; priorità sull’URL manuale in `wrap()`.
+- Impostazioni: selettore colore accent affiancato all’hex; script `branding-settings.js` (sync hex ↔ color, frame media).
+
+### Changed
+
+- Header email: con logo, titolo vuoto non usa più il fallback al nome sito nel banner; senza logo resta il fallback. Preheader: titolo se impostato, altrimenti nome sito.
+- Footer branding: HTML consentito e sanificato con `wp_kses_post` (stesso modello dei post); textarea e hint aggiornati.
+
 ## [1.2.0] - 2026-03-24
 
 ### Added

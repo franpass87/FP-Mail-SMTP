@@ -1,6 +1,6 @@
 # FP Mail SMTP
 
-[![version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/franpass87/FP-Mail-SMTP)
+[![version](https://img.shields.io/badge/version-1.2.1-blue.svg)](https://github.com/franpass87/FP-Mail-SMTP)
 
 Plugin WordPress per la configurazione SMTP e il log di tutte le email in uscita. Compatibile con tutti i plugin FP, WooCommerce e qualsiasi plugin che usa `wp_mail()`.
 
@@ -13,7 +13,7 @@ Plugin WordPress per la configurazione SMTP e il log di tutte le email in uscita
 - **Pagina Log**: filtri per stato e sorgente, ricerca, paginazione, dettaglio singola email
 - **Retention configurabile**: pulizia automatica dei log (1–365 giorni)
 - **Email di test**: verifica la configurazione con un click
-- **Branding email FP**: wrapper HTML unificato (stile FP Experiences) configurabile in Impostazioni; altri plugin possono usare `fp_fpmail_brand_html()` o il filtro `fp_fpmail_brand_html` sul corpo HTML senza cambiare i testi
+- **Branding email FP**: wrapper HTML unificato (stile FP Experiences) in Impostazioni — logo da URL o da Media Library, colore accent (hex + picker), header/footer (footer con HTML limitato tipo post); altri plugin possono usare `fp_fpmail_brand_html()` o il filtro `fp_fpmail_brand_html` sul corpo HTML senza cambiare i testi
 
 ## Requisiti
 
