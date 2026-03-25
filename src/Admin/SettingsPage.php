@@ -398,16 +398,43 @@ final class SettingsPage
                             'fp-fpmail'
                         ) . '</p><p style="margin:0;"><strong>' . esc_html__('Anteprima', 'fp-fpmail') . '</strong></p>';
                         $preview_svc = new BrandingService();
-                        $preview_html = $preview_svc->wrap($preview_inner);
+                        $preview_light_html = $preview_svc->wrap($preview_inner, [
+                            'include_branding_styles' => true,
+                            'preview_mode' => 'light',
+                        ]);
+                        $preview_dark_html = $preview_svc->wrap($preview_inner, [
+                            'include_branding_styles' => false,
+                            'preview_mode' => 'dark',
+                        ]);
                         ?>
-                        <p class="description fpmail-field-spacing"><strong><?php esc_html_e('Anteprima', 'fp-fpmail'); ?></strong></p>
-                        <div class="fpmail-email-preview-shell">
-                            <?php
-                            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML email trusted, generato da BrandingService con escape interni.
-                            echo $preview_html;
-                            ?>
+                        <p class="description fpmail-field-spacing"><strong><?php esc_html_e('Anteprima email', 'fp-fpmail'); ?></strong></p>
+                        <div class="fpmail-email-preview-grid" role="group" aria-label="<?php esc_attr_e('Anteprima tema chiaro e scuro', 'fp-fpmail'); ?>">
+                            <div class="fpmail-email-preview-col">
+                                <p class="fpmail-email-preview-caption">
+                                    <span class="fpmail-email-preview-badge fpmail-email-preview-badge--light"><?php esc_html_e('Predefinito', 'fp-fpmail'); ?></span>
+                                    <?php esc_html_e('Tema chiaro', 'fp-fpmail'); ?>
+                                </p>
+                                <div class="fpmail-email-preview-shell">
+                                    <?php
+                                    // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML email trusted, generato da BrandingService con escape interni.
+                                    echo $preview_light_html;
+                                    ?>
+                                </div>
+                            </div>
+                            <div class="fpmail-email-preview-col">
+                                <p class="fpmail-email-preview-caption">
+                                    <span class="fpmail-email-preview-badge"><?php esc_html_e('Simulazione', 'fp-fpmail'); ?></span>
+                                    <?php esc_html_e('Tema scuro', 'fp-fpmail'); ?>
+                                </p>
+                                <div class="fpmail-email-preview-shell">
+                                    <?php
+                                    // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML email trusted, generato da BrandingService con escape interni.
+                                    echo $preview_dark_html;
+                                    ?>
+                                </div>
+                            </div>
                         </div>
-                        <p class="fpmail-email-preview-note"><?php esc_html_e('L’anteprima riflette le impostazioni salvate. Salva il modulo dopo le modifiche per aggiornare anteprima e invii dai plugin che usano fp_fpmail_brand_html.', 'fp-fpmail'); ?></p>
+                        <p class="fpmail-email-preview-note"><?php esc_html_e('La prima colonna resta sempre in tema chiaro (anche se il sistema è in dark mode). La seconda mostra come può apparire in client che applicano tema scuro. Salva il modulo dopo le modifiche per aggiornare le anteprime e gli invii dai plugin che usano fp_fpmail_brand_html.', 'fp-fpmail'); ?></p>
                     </div>
                 </div>
 

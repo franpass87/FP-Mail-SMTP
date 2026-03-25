@@ -1,6 +1,6 @@
 # FP Mail SMTP
 
-[![version](https://img.shields.io/badge/version-1.2.2-blue.svg)](https://github.com/franpass87/FP-Mail-SMTP)
+[![version](https://img.shields.io/badge/version-1.2.3-blue.svg)](https://github.com/franpass87/FP-Mail-SMTP)
 
 Plugin WordPress per la configurazione SMTP e il log di tutte le email in uscita. Compatibile con tutti i plugin FP, WooCommerce e qualsiasi plugin che usa `wp_mail()`.
 

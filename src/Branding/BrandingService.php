@@ -46,13 +46,25 @@ final class BrandingService
     /**
      * Applica il wrapper usando le opzioni salvate in `fp_fpmail_email_branding`.
      *
-     * Include stili per dark mode: `@media (prefers-color-scheme: dark)` e selettori `[data-ogsc]`
-     * (Outlook.com in tema scuro). Gmail e altri client possono ignorare il blocco style.
+     * Include stili per dark mode: `@media (prefers-color-scheme: dark)` (escluso dentro
+     * `.fp-fpmail-email--preview-light` per l’anteprima admin) e `[data-ogsc]` (Outlook.com).
+     * Per simulare il tema scuro in anteprima usare `preview_mode` => `'dark'`.
+     *
+     * @param array{
+     *     include_branding_styles?: bool,
+     *     preview_mode?: 'light'|'dark'|null,
+     * } $options `include_branding_styles` false evita di ripetere il blocco style (seconda anteprima).
      */
-    public function wrap(string $message): string
+    public function wrap(string $message, array $options = []): string
     {
         if ('' === trim($message)) {
             return '';
+        }
+
+        $include_branding_styles = $options['include_branding_styles'] ?? true;
+        $preview_mode = $options['preview_mode'] ?? null;
+        if ($preview_mode !== null && $preview_mode !== 'light' && $preview_mode !== 'dark') {
+            $preview_mode = null;
         }
 
         $branding = get_option(self::OPTION_BRANDING, []);
@@ -90,13 +102,29 @@ final class BrandingService
 
         $accent_dark = self::darkenHex($accent_color, 30);
 
+        $root_classes = ['fp-fpmail-email-root'];
+        if ($preview_mode === 'light') {
+            $root_classes[] = 'fp-fpmail-email--preview-light';
+        } elseif ($preview_mode === 'dark') {
+            $root_classes[] = 'fp-fpmail-email--preview-dark';
+        }
+        $root_class_attr = implode(' ', $root_classes);
+
+        $color_scheme_inline = 'light dark';
+        if ($preview_mode === 'light') {
+            $color_scheme_inline = 'light';
+        }
+
         ob_start();
-        echo self::darkModeEmailStyleBlock($accent_color);
+        if ($include_branding_styles) {
+            echo self::darkModeEmailStyleBlock($accent_color);
+        }
         ?>
+        <div class="<?php echo esc_attr($root_class_attr); ?>">
         <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
             <?php echo esc_html($preheader_text); ?>
         </div>
-        <table role="presentation" class="fp-fpmail-email-outer" cellpadding="0" cellspacing="0" width="100%" style="margin:0;padding:0;background-color:#eef2f7;color-scheme:light dark;">
+        <table role="presentation" class="fp-fpmail-email-outer" cellpadding="0" cellspacing="0" width="100%" style="margin:0;padding:0;background-color:#eef2f7;color-scheme:<?php echo esc_attr($color_scheme_inline); ?>;">
             <tr>
                 <td align="center" class="fp-fpmail-email-shell" style="padding:28px 12px;">
                     <table role="presentation" class="fp-fpmail-email-card" cellpadding="0" cellspacing="0" width="640" style="width:640px;max-width:640px;background-color:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #dbe3ef;">
@@ -128,6 +156,7 @@ final class BrandingService
                 </td>
             </tr>
         </table>
+        </div>
         <?php
 
         return trim((string) ob_get_clean());
@@ -230,6 +259,26 @@ final class BrandingService
     }
 
     /**
+     * CSS dark: media query (non dentro anteprima light), Outlook [data-ogsc], anteprima admin forzata (.fp-fpmail-email--preview-dark).
+     *
+     * @param string $h0 Primo stop gradient header (esc_attred).
+     * @param string $h1 Secondo stop gradient header (esc_attred).
+     */
+    private static function darkEmailCssRules(string $selector_prefix, string $h0, string $h1): string
+    {
+        return $selector_prefix . '.fp-fpmail-email-outer{background-color:#12141a!important;}'
+            . $selector_prefix . '.fp-fpmail-email-shell{background-color:transparent!important;}'
+            . $selector_prefix . '.fp-fpmail-email-card{background-color:#1c1f26!important;border-color:#363d4d!important;}'
+            . $selector_prefix . '.fp-fpmail-email-header{background:linear-gradient(135deg,' . $h0 . ' 0%,' . $h1 . ' 100%)!important;color:#f8fafc!important;}'
+            . $selector_prefix . '.fp-fpmail-email-header .fp-fpmail-email-header-title{color:#f8fafc!important;}'
+            . $selector_prefix . '.fp-fpmail-email-body{background-color:#1c1f26!important;color:#e2e8f0!important;}'
+            . $selector_prefix . '.fp-fpmail-email-body a{color:#38bdf8!important;}'
+            . $selector_prefix . '.fp-fpmail-email-footer{background-color:#151922!important;color:#94a3b8!important;border-top-color:#363d4d!important;}'
+            . $selector_prefix . '.fp-fpmail-email-footer .fp-fpmail-email-footer-text{color:#94a3b8!important;}'
+            . $selector_prefix . '.fp-fpmail-email-footer a,' . $selector_prefix . '.fp-fpmail-email-footer-html a{color:#7dd3fc!important;}';
+    }
+
+    /**
      * CSS per dark mode (Apple Mail, alcuni client WebKit, Outlook.com con [data-ogsc]).
      * I colori accent nel gradient header sono derivati dall’accent utente (già sanificato).
      */
@@ -238,33 +287,14 @@ final class BrandingService
         $h0 = esc_attr(self::darkenHex($accent_color, 15));
         $h1 = esc_attr(self::darkenHex($accent_color, 50));
 
-        $rules =
-            '.fp-fpmail-email-outer{background-color:#12141a!important;}'
-            . '.fp-fpmail-email-shell{background-color:transparent!important;}'
-            . '.fp-fpmail-email-card{background-color:#1c1f26!important;border-color:#363d4d!important;}'
-            . '.fp-fpmail-email-header{background:linear-gradient(135deg,' . $h0 . ' 0%,' . $h1 . ' 100%)!important;color:#f8fafc!important;}'
-            . '.fp-fpmail-email-header .fp-fpmail-email-header-title{color:#f8fafc!important;}'
-            . '.fp-fpmail-email-body{background-color:#1c1f26!important;color:#e2e8f0!important;}'
-            . '.fp-fpmail-email-body a{color:#38bdf8!important;}'
-            . '.fp-fpmail-email-footer{background-color:#151922!important;color:#94a3b8!important;border-top-color:#363d4d!important;}'
-            . '.fp-fpmail-email-footer .fp-fpmail-email-footer-text{color:#94a3b8!important;}'
-            . '.fp-fpmail-email-footer a,.fp-fpmail-email-footer-html a{color:#7dd3fc!important;}';
-
-        $ogsc_rules =
-            '[data-ogsc] .fp-fpmail-email-outer{background-color:#12141a!important;}'
-            . '[data-ogsc] .fp-fpmail-email-shell{background-color:transparent!important;}'
-            . '[data-ogsc] .fp-fpmail-email-card{background-color:#1c1f26!important;border-color:#363d4d!important;}'
-            . '[data-ogsc] .fp-fpmail-email-header{background:linear-gradient(135deg,' . $h0 . ' 0%,' . $h1 . ' 100%)!important;color:#f8fafc!important;}'
-            . '[data-ogsc] .fp-fpmail-email-header .fp-fpmail-email-header-title{color:#f8fafc!important;}'
-            . '[data-ogsc] .fp-fpmail-email-body{background-color:#1c1f26!important;color:#e2e8f0!important;}'
-            . '[data-ogsc] .fp-fpmail-email-body a{color:#38bdf8!important;}'
-            . '[data-ogsc] .fp-fpmail-email-footer{background-color:#151922!important;color:#94a3b8!important;border-top-color:#363d4d!important;}'
-            . '[data-ogsc] .fp-fpmail-email-footer .fp-fpmail-email-footer-text{color:#94a3b8!important;}'
-            . '[data-ogsc] .fp-fpmail-email-footer a,[data-ogsc] .fp-fpmail-email-footer-html a{color:#7dd3fc!important;}';
+        $media_inner = self::darkEmailCssRules('.fp-fpmail-email-root:not(.fp-fpmail-email--preview-light) ', $h0, $h1);
+        $ogsc_rules = self::darkEmailCssRules('[data-ogsc] ', $h0, $h1);
+        $preview_dark_rules = self::darkEmailCssRules('.fp-fpmail-email--preview-dark ', $h0, $h1);
 
         return '<style type="text/css">'
-            . '@media (prefers-color-scheme: dark){' . $rules . '}'
+            . '@media (prefers-color-scheme: dark){' . $media_inner . '}'
             . $ogsc_rules
+            . $preview_dark_rules
             . '</style>';
     }
 

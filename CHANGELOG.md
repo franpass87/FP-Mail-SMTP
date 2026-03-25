@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.3] - 2026-03-24
+
+### Added
+
+- Anteprima branding: **due colonne** (tema chiaro sempre forzato + simulazione tema scuro); opzioni `wrap()` `preview_mode` e `include_branding_styles`.
+
+### Fixed
+
+- Anteprima admin: con sistema in dark mode non forza più solo il tema scuro — la colonna «Tema chiaro» usa `fp-fpmail-email--preview-light` esclusa dalla media query `prefers-color-scheme: dark`.
+
+### Changed
+
+- Email in produzione: contenuto avvolto in `div.fp-fpmail-email-root` così i selettori dark mode restano corretti; regole `.fp-fpmail-email--preview-dark` solo per anteprima.
+
 ## [1.2.2] - 2026-03-24
 
 ### Added

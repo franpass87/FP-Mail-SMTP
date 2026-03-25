@@ -497,6 +497,49 @@ body.fp-fpmail_page_fp-fpmail-logs #wpbody-content > .wrap.fpmail-admin-page {
     background: #fff;
 }
 
+.fpmail-email-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+    margin-top: 0.35rem;
+    align-items: start;
+}
+@media (max-width: 960px) {
+    .fpmail-email-preview-grid {
+        grid-template-columns: 1fr;
+    }
+}
+.fpmail-email-preview-col {
+    min-width: 0;
+}
+.fpmail-email-preview-caption {
+    margin: 0 0 0.25rem 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--fpdms-text);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+}
+.fpmail-email-preview-badge {
+    display: inline-block;
+    padding: 0.12rem 0.45rem;
+    border-radius: var(--radius-pill);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    background: var(--fpdms-bg-light);
+    color: var(--fpdms-text-muted);
+    border: 1px solid var(--fpdms-border);
+}
+.fpmail-email-preview-badge--light {
+    background: var(--fpdms-success-bg);
+    color: var(--fpdms-success-text);
+    border-color: transparent;
+}
+
 .fpmail-email-preview-note {
     margin-top: 0.65rem;
     color: var(--fpdms-text-muted);
