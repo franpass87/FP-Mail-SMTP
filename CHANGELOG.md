@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.3.2] - 2026-03-24
+
+### Fixed
+
+- **Password SMTP**: salvataggio senza `sanitize_text_field()` (poteva alterare caratteri tipo `<`, `&` nelle chiavi SMTP/API). Hint sotto il campo se una password è già memorizzata (il campo resta vuoto per sicurezza).
+- **Email di test (AJAX)**: dopo la risposta veniva assegnato `className` al box risultato, **eliminando** la classe `is-visible` — il messaggio restava con `display: none`. Ora si usano `classList` e si mantiene `fpmail-test-result` + `is-visible`. Gestione risposta non-JSON e corpi `0` / `-1` (nonce/sessione) con messaggio chiaro.
+
+### Changed
+
+- **SmtpConfigurator**: username e password letti sempre da opzioni; `SMTPAuth` attivo se è valorizzato username **o** password (prima la password in DB non veniva applicata se lo username era vuoto).
+
 ## [1.3.1] - 2026-03-24
 
 ### Fixed

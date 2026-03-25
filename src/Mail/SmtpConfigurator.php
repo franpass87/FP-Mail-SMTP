@@ -43,14 +43,13 @@ final class SmtpConfigurator
         $phpmailer->isSMTP();
         $phpmailer->Host = $host;
         $phpmailer->Port = absint(get_option('fp_fpmail_smtp_port', 587));
-        $phpmailer->SMTPAuth = !empty(get_option('fp_fpmail_smtp_user', ''));
 
-        $user = get_option('fp_fpmail_smtp_user', '');
-        if ($user !== '') {
-            $phpmailer->Username = $user;
-            $pass = get_option('fp_fpmail_smtp_pass', '');
-            $phpmailer->Password = $this->decryptPassword($pass);
-        }
+        $user = (string) get_option('fp_fpmail_smtp_user', '');
+        $passStored = (string) get_option('fp_fpmail_smtp_pass', '');
+        $pass = $this->decryptPassword($passStored);
+        $phpmailer->Username = $user;
+        $phpmailer->Password = $pass;
+        $phpmailer->SMTPAuth = ($user !== '' || $pass !== '');
 
         $encryption = get_option('fp_fpmail_smtp_encryption', 'tls');
         if ($encryption === 'ssl') {

@@ -109,10 +109,12 @@ final class SettingsPage
             );
         }
 
-        // Password: cifrata in base64
-        if (isset($_POST['fp_fpmail_smtp_pass']) && $_POST['fp_fpmail_smtp_pass'] !== '') {
-            $pass = sanitize_text_field(wp_unslash($_POST['fp_fpmail_smtp_pass']));
-            update_option('fp_fpmail_smtp_pass', base64_encode($pass));
+        // Password: base64 in DB (no sanitize_text_field — altera caratteri tipo <>& nelle SMTP key).
+        if (isset($_POST['fp_fpmail_smtp_pass'])) {
+            $pass = (string) wp_unslash($_POST['fp_fpmail_smtp_pass']);
+            if ($pass !== '') {
+                update_option('fp_fpmail_smtp_pass', base64_encode($pass));
+            }
         }
 
         // Brevo: token webhook solo in modalità webhook
@@ -200,6 +202,7 @@ final class SettingsPage
         $saved = isset($_GET['saved']) && $_GET['saved'] === '1';
         $host = get_option('fp_fpmail_smtp_host', '');
         $smtpConfigured = $host !== '';
+        $smtpPassStored = (string) get_option('fp_fpmail_smtp_pass', '') !== '';
         $adminEmail = get_option('admin_email', '');
         ?>
         <div class="wrap fpmail-admin-page">
@@ -280,6 +283,9 @@ final class SettingsPage
                                 <input type="password" id="fp_fpmail_smtp_pass" name="fp_fpmail_smtp_pass"
                                        value="" class="regular-text" autocomplete="new-password"
                                        placeholder="<?php esc_attr_e('Lascia vuoto per non modificare', 'fp-fpmail'); ?>">
+                                <?php if ($smtpPassStored) : ?>
+                                    <p class="description" id="fpmail-smtp-pass-stored-hint"><?php esc_html_e('È già memorizzata una password SMTP. Il campo resta vuoto per sicurezza: compila solo se vuoi sostituirla.', 'fp-fpmail'); ?></p>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -599,7 +605,7 @@ final class SettingsPage
             if (!btn || !toInput || !result) return;
             btn.addEventListener('click', function() {
                 btn.disabled = true;
-                result.classList.remove('is-visible');
+                result.classList.remove('is-visible', 'fpmail-alert-success', 'fpmail-alert-danger');
                 var formData = new FormData();
                 formData.append('action', 'fp_fpmail_send_test');
                 formData.append('nonce', '<?php echo esc_js(wp_create_nonce('fp_fpmail_test_email')); ?>');
@@ -609,16 +615,35 @@ final class SettingsPage
                     body: formData,
                     credentials: 'same-origin'
                 })
-                .then(function(r) { return r.json(); })
-                .then(function(data) {
+                .then(function(r) { return r.text(); })
+                .then(function(text) {
+                    var data = null;
+                    try {
+                        data = JSON.parse(text);
+                    } catch (e) {
+                        data = null;
+                    }
                     result.classList.add('is-visible');
-                    result.className = 'fpmail-alert fpmail-test-result ' + (data.success ? 'fpmail-alert-success' : 'fpmail-alert-danger');
-                    result.innerHTML = (data.success ? '<span class="dashicons dashicons-yes-alt"></span> ' : '<span class="dashicons dashicons-warning"></span> ') +
-                        (data.data && data.data.message ? data.data.message : (data.data && data.data[0] ? data.data[0].message : ''));
+                    result.classList.add(data && data.success ? 'fpmail-alert-success' : 'fpmail-alert-danger');
+                    var msg = '';
+                    if (data && typeof data.data !== 'undefined') {
+                        if (data.data && data.data.message) {
+                            msg = data.data.message;
+                        } else if (data.data && data.data[0] && data.data[0].message) {
+                            msg = data.data[0].message;
+                        }
+                    }
+                    if (!msg) {
+                        if (text === '0' || text === '-1') {
+                            msg = '<?php echo esc_js(__('Sessione scaduta o richiesta non valida. Ricarica la pagina e riprova.', 'fp-fpmail')); ?>';
+                        } else {
+                            msg = data ? '<?php echo esc_js(__('Risposta non valida dal server.', 'fp-fpmail')); ?>' : '<?php echo esc_js(__('Errore di connessione o risposta non JSON.', 'fp-fpmail')); ?>';
+                        }
+                    }
+                    result.innerHTML = (data && data.success ? '<span class="dashicons dashicons-yes-alt"></span> ' : '<span class="dashicons dashicons-warning"></span> ') + msg;
                 })
                 .catch(function() {
-                    result.classList.add('is-visible');
-                    result.className = 'fpmail-alert fpmail-test-result fpmail-alert-danger';
+                    result.classList.add('is-visible', 'fpmail-alert-danger');
                     result.innerHTML = '<span class="dashicons dashicons-warning"></span> <?php echo esc_js(__('Errore di connessione.', 'fp-fpmail')); ?>';
                 })
                 .finally(function() { btn.disabled = false; });
