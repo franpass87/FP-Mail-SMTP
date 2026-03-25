@@ -45,6 +45,9 @@ final class BrandingService
 
     /**
      * Applica il wrapper usando le opzioni salvate in `fp_fpmail_email_branding`.
+     *
+     * Include stili per dark mode: `@media (prefers-color-scheme: dark)` e selettori `[data-ogsc]`
+     * (Outlook.com in tema scuro). Gmail e altri client possono ignorare il blocco style.
      */
     public function wrap(string $message): string
     {
@@ -88,35 +91,36 @@ final class BrandingService
         $accent_dark = self::darkenHex($accent_color, 30);
 
         ob_start();
+        echo self::darkModeEmailStyleBlock($accent_color);
         ?>
         <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
             <?php echo esc_html($preheader_text); ?>
         </div>
-        <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0;padding:0;background-color:#eef2f7;">
+        <table role="presentation" class="fp-fpmail-email-outer" cellpadding="0" cellspacing="0" width="100%" style="margin:0;padding:0;background-color:#eef2f7;color-scheme:light dark;">
             <tr>
-                <td align="center" style="padding:28px 12px;">
-                    <table role="presentation" cellpadding="0" cellspacing="0" width="640" style="width:640px;max-width:640px;background-color:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #dbe3ef;">
+                <td align="center" class="fp-fpmail-email-shell" style="padding:28px 12px;">
+                    <table role="presentation" class="fp-fpmail-email-card" cellpadding="0" cellspacing="0" width="640" style="width:640px;max-width:640px;background-color:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #dbe3ef;">
                         <tr>
-                            <td style="background:linear-gradient(135deg,<?php echo esc_attr($accent_color); ?> 0%,<?php echo esc_attr($accent_dark); ?> 100%);padding:24px 28px;text-align:center;color:#ffffff;font-family:'Helvetica Neue',Arial,sans-serif;">
+                            <td class="fp-fpmail-email-header" style="background:linear-gradient(135deg,<?php echo esc_attr($accent_color); ?> 0%,<?php echo esc_attr($accent_dark); ?> 100%);padding:24px 28px;text-align:center;color:#ffffff;font-family:'Helvetica Neue',Arial,sans-serif;">
                                 <?php if ($has_logo) : ?>
-                                    <img src="<?php echo esc_url($logo_url); ?>" alt="<?php echo esc_attr($img_alt); ?>" style="<?php echo esc_attr($logo_style); ?>" />
+                                    <img class="fp-fpmail-email-logo" src="<?php echo esc_url($logo_url); ?>" alt="<?php echo esc_attr($img_alt); ?>" style="<?php echo esc_attr($logo_style); ?>" />
                                 <?php endif; ?>
                                 <?php if ($title_visible !== '') : ?>
-                                    <p style="margin:0;font-size:19px;font-weight:700;letter-spacing:0.25px;"><?php echo esc_html($title_visible); ?></p>
+                                    <p class="fp-fpmail-email-header-title" style="margin:0;font-size:19px;font-weight:700;letter-spacing:0.25px;"><?php echo esc_html($title_visible); ?></p>
                                 <?php endif; ?>
                             </td>
                         </tr>
                         <tr>
-                            <td style="padding:30px 30px 22px;color:#0f172a;font-family:'Helvetica Neue',Arial,sans-serif;line-height:1.75;font-size:15px;background:#ffffff;">
+                            <td class="fp-fpmail-email-body" style="padding:30px 30px 22px;color:#0f172a;font-family:'Helvetica Neue',Arial,sans-serif;line-height:1.75;font-size:15px;background:#ffffff;">
                                 <?php echo wp_kses_post($message); ?>
                             </td>
                         </tr>
                         <tr>
-                            <td style="padding:18px 30px;background-color:#f8fafc;color:#475569;font-size:13px;text-align:center;font-family:'Helvetica Neue',Arial,sans-serif;border-top:1px solid #e2e8f0;">
+                            <td class="fp-fpmail-email-footer" style="padding:18px 30px;background-color:#f8fafc;color:#475569;font-size:13px;text-align:center;font-family:'Helvetica Neue',Arial,sans-serif;border-top:1px solid #e2e8f0;">
                                 <?php if ($footer_text !== '') : ?>
-                                    <div class="fp-fpmail-footer-html" style="margin:0;"><?php echo wp_kses_post($footer_text); ?></div>
+                                    <div class="fp-fpmail-footer-html fp-fpmail-email-footer-html" style="margin:0;"><?php echo wp_kses_post($footer_text); ?></div>
                                 <?php else : ?>
-                                    <p style="margin:0;"><?php echo esc_html($this->defaultFooterText()); ?></p>
+                                    <p class="fp-fpmail-email-footer-text" style="margin:0;"><?php echo esc_html($this->defaultFooterText()); ?></p>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -223,6 +227,45 @@ final class BrandingService
             'Messaggio generato automaticamente. Per assistenza puoi rispondere a questa email.',
             'fp-fpmail'
         );
+    }
+
+    /**
+     * CSS per dark mode (Apple Mail, alcuni client WebKit, Outlook.com con [data-ogsc]).
+     * I colori accent nel gradient header sono derivati dall’accent utente (già sanificato).
+     */
+    private static function darkModeEmailStyleBlock(string $accent_color): string
+    {
+        $h0 = esc_attr(self::darkenHex($accent_color, 15));
+        $h1 = esc_attr(self::darkenHex($accent_color, 50));
+
+        $rules =
+            '.fp-fpmail-email-outer{background-color:#12141a!important;}'
+            . '.fp-fpmail-email-shell{background-color:transparent!important;}'
+            . '.fp-fpmail-email-card{background-color:#1c1f26!important;border-color:#363d4d!important;}'
+            . '.fp-fpmail-email-header{background:linear-gradient(135deg,' . $h0 . ' 0%,' . $h1 . ' 100%)!important;color:#f8fafc!important;}'
+            . '.fp-fpmail-email-header .fp-fpmail-email-header-title{color:#f8fafc!important;}'
+            . '.fp-fpmail-email-body{background-color:#1c1f26!important;color:#e2e8f0!important;}'
+            . '.fp-fpmail-email-body a{color:#38bdf8!important;}'
+            . '.fp-fpmail-email-footer{background-color:#151922!important;color:#94a3b8!important;border-top-color:#363d4d!important;}'
+            . '.fp-fpmail-email-footer .fp-fpmail-email-footer-text{color:#94a3b8!important;}'
+            . '.fp-fpmail-email-footer a,.fp-fpmail-email-footer-html a{color:#7dd3fc!important;}';
+
+        $ogsc_rules =
+            '[data-ogsc] .fp-fpmail-email-outer{background-color:#12141a!important;}'
+            . '[data-ogsc] .fp-fpmail-email-shell{background-color:transparent!important;}'
+            . '[data-ogsc] .fp-fpmail-email-card{background-color:#1c1f26!important;border-color:#363d4d!important;}'
+            . '[data-ogsc] .fp-fpmail-email-header{background:linear-gradient(135deg,' . $h0 . ' 0%,' . $h1 . ' 100%)!important;color:#f8fafc!important;}'
+            . '[data-ogsc] .fp-fpmail-email-header .fp-fpmail-email-header-title{color:#f8fafc!important;}'
+            . '[data-ogsc] .fp-fpmail-email-body{background-color:#1c1f26!important;color:#e2e8f0!important;}'
+            . '[data-ogsc] .fp-fpmail-email-body a{color:#38bdf8!important;}'
+            . '[data-ogsc] .fp-fpmail-email-footer{background-color:#151922!important;color:#94a3b8!important;border-top-color:#363d4d!important;}'
+            . '[data-ogsc] .fp-fpmail-email-footer .fp-fpmail-email-footer-text{color:#94a3b8!important;}'
+            . '[data-ogsc] .fp-fpmail-email-footer a,[data-ogsc] .fp-fpmail-email-footer-html a{color:#7dd3fc!important;}';
+
+        return '<style type="text/css">'
+            . '@media (prefers-color-scheme: dark){' . $rules . '}'
+            . $ogsc_rules
+            . '</style>';
     }
 
     private static function sanitizeHex(string $hex): ?string

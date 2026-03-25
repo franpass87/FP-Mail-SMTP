@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.2] - 2026-03-24
+
+### Added
+
+- Branding email: stili **dark mode** con `@media (prefers-color-scheme: dark)` e regole `[data-ogsc]` (Outlook.com tema scuro): sfondi, testi, link e gradient header attenuato dall’accent configurato; classi `fp-fpmail-email-*` sul layout; `color-scheme: light dark` sul wrapper esterno.
+
 ## [1.2.1] - 2026-03-24
 
 ### Added
