@@ -200,7 +200,9 @@ final class SettingsPage
     }
 
     /**
-     * AJAX: anteprima email branding dai valori correnti del form (senza salvare).
+     * AJAX: rigenera l’HTML delle due anteprime branding a partire dal form (nonce + manage_options).
+     *
+     * @return void Invia JSON `{ light, dark }` o errore.
      */
     public function handlePreviewBranding(): void
     {
