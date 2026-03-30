@@ -53,7 +53,9 @@ final class BrandingService
      * @param array{
      *     include_branding_styles?: bool,
      *     preview_mode?: 'light'|'dark'|null,
+     *     branding_override?: array<string, mixed>|null,
      * } $options `include_branding_styles` false evita di ripetere il blocco style (seconda anteprima).
+     *             `branding_override` usa questi dati al posto di `get_option` (es. anteprima live dal form).
      */
     public function wrap(string $message, array $options = []): string
     {
@@ -67,8 +69,13 @@ final class BrandingService
             $preview_mode = null;
         }
 
-        $branding = get_option(self::OPTION_BRANDING, []);
-        $branding = is_array($branding) ? $branding : [];
+        $override = $options['branding_override'] ?? null;
+        if (is_array($override)) {
+            $branding = $override;
+        } else {
+            $branding = get_option(self::OPTION_BRANDING, []);
+            $branding = is_array($branding) ? $branding : [];
+        }
 
         $logo_url = self::resolveLogoUrl($branding);
         $has_logo = $logo_url !== '';

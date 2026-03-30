@@ -27,6 +27,7 @@ final class SettingsPage
         add_action('admin_post_fp_fpmail_save_settings', [$this, 'handleSave']);
         add_action('wp_ajax_fp_fpmail_send_test', [$this, 'handleTestEmail']);
         add_action('wp_ajax_fp_fpmail_regenerate_brevo_token', [$this, 'handleRegenerateBrevoToken']);
+        add_action('wp_ajax_fp_fpmail_preview_branding', [$this, 'handlePreviewBranding']);
         add_action('admin_enqueue_scripts', [$this, 'enqueueAssets']);
     }
 
@@ -67,6 +68,10 @@ final class SettingsPage
                     'selectLogo' => __('Scegli dalla libreria media', 'fp-fpmail'),
                     'titleLogo' => __('Logo email — immagine', 'fp-fpmail'),
                     'useImage' => __('Usa questa immagine', 'fp-fpmail'),
+                    'previewNonce' => wp_create_nonce('fp_fpmail_preview_branding'),
+                    'previewAction' => 'fp_fpmail_preview_branding',
+                    'ajaxUrl' => admin_url('admin-ajax.php'),
+                    'previewError' => __('Anteprima non aggiornata. Ricarica la pagina.', 'fp-fpmail'),
                 ]
             );
         }
@@ -192,6 +197,53 @@ final class SettingsPage
         update_option('fp_fpmail_brevo_webhook_token', $token);
         $url = rest_url('fp/fpmail/v1/brevo-webhook') . '?token=' . rawurlencode($token);
         wp_send_json_success(['token' => $token, 'url' => $url]);
+    }
+
+    /**
+     * AJAX: anteprima email branding dai valori correnti del form (senza salvare).
+     */
+    public function handlePreviewBranding(): void
+    {
+        check_ajax_referer('fp_fpmail_preview_branding', 'nonce');
+        if (! current_user_can('manage_options')) {
+            wp_send_json_error(['message' => __('Accesso negato.', 'fp-fpmail')]);
+        }
+
+        $raw = isset($_POST['fp_fpmail_email_branding']) && is_array($_POST['fp_fpmail_email_branding'])
+            ? wp_unslash($_POST['fp_fpmail_email_branding'])
+            : [];
+        $branding = BrandingService::sanitizeBrandingInput($raw);
+
+        $inner = self::brandingPreviewSampleInnerHtml();
+        $preview_svc = new BrandingService();
+        $preview_light_html = $preview_svc->wrap($inner, [
+            'include_branding_styles' => true,
+            'preview_mode' => 'light',
+            'branding_override' => $branding,
+        ]);
+        $preview_dark_html = $preview_svc->wrap($inner, [
+            'include_branding_styles' => false,
+            'preview_mode' => 'dark',
+            'branding_override' => $branding,
+        ]);
+
+        wp_send_json_success(
+            [
+                'light' => $preview_light_html,
+                'dark' => $preview_dark_html,
+            ]
+        );
+    }
+
+    /**
+     * Corpo di esempio per l’anteprima branding (stesso markup in pagina e in AJAX).
+     */
+    private static function brandingPreviewSampleInnerHtml(): string
+    {
+        return '<p style="margin:0 0 12px;">' . esc_html__(
+            'Questo è un esempio di contenuto: il plugin FP invia solo questa parte; FP Mail SMTP aggiunge header, colori e footer.',
+            'fp-fpmail'
+        ) . '</p><p style="margin:0;"><strong>' . esc_html__('Anteprima', 'fp-fpmail') . '</strong></p>';
     }
 
     /**
@@ -412,10 +464,7 @@ final class SettingsPage
                             </div>
                         </div>
                         <?php
-                        $preview_inner = '<p style="margin:0 0 12px;">' . esc_html__(
-                            'Questo è un esempio di contenuto: il plugin FP invia solo questa parte; FP Mail SMTP aggiunge header, colori e footer.',
-                            'fp-fpmail'
-                        ) . '</p><p style="margin:0;"><strong>' . esc_html__('Anteprima', 'fp-fpmail') . '</strong></p>';
+                        $preview_inner = self::brandingPreviewSampleInnerHtml();
                         $preview_svc = new BrandingService();
                         $preview_light_html = $preview_svc->wrap($preview_inner, [
                             'include_branding_styles' => true,
@@ -433,7 +482,7 @@ final class SettingsPage
                                     <span class="fpmail-email-preview-badge fpmail-email-preview-badge--light"><?php esc_html_e('Predefinito', 'fp-fpmail'); ?></span>
                                     <?php esc_html_e('Tema chiaro', 'fp-fpmail'); ?>
                                 </p>
-                                <div class="fpmail-email-preview-shell">
+                                <div class="fpmail-email-preview-shell" id="fpmail-email-preview-light">
                                     <?php
                                     // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML email trusted, generato da BrandingService con escape interni.
                                     echo $preview_light_html;
@@ -445,7 +494,7 @@ final class SettingsPage
                                     <span class="fpmail-email-preview-badge"><?php esc_html_e('Simulazione', 'fp-fpmail'); ?></span>
                                     <?php esc_html_e('Tema scuro', 'fp-fpmail'); ?>
                                 </p>
-                                <div class="fpmail-email-preview-shell">
+                                <div class="fpmail-email-preview-shell" id="fpmail-email-preview-dark">
                                     <?php
                                     // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML email trusted, generato da BrandingService con escape interni.
                                     echo $preview_dark_html;
@@ -453,7 +502,7 @@ final class SettingsPage
                                 </div>
                             </div>
                         </div>
-                        <p class="fpmail-email-preview-note"><?php esc_html_e('La prima colonna resta sempre in tema chiaro (anche se il sistema è in dark mode). La seconda mostra come può apparire in client che applicano tema scuro. Salva il modulo dopo le modifiche per aggiornare le anteprime e gli invii dai plugin che usano fp_fpmail_brand_html.', 'fp-fpmail'); ?></p>
+                        <p class="fpmail-email-preview-note"><?php esc_html_e('L’anteprima si aggiorna mentre modifichi logo, colori, titolo e footer (stessa logica delle email inviate). Salva per applicare le modifiche agli invii reali tramite fp_fpmail_brand_html.', 'fp-fpmail'); ?></p>
                     </div>
                 </div>
 

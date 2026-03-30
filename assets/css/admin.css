@@ -497,6 +497,12 @@ body.fp-fpmail_page_fp-fpmail-logs #wpbody-content > .wrap.fpmail-admin-page {
     background: #fff;
 }
 
+.fpmail-email-preview-shell--loading {
+    opacity: 0.55;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+}
+
 .fpmail-email-preview-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));

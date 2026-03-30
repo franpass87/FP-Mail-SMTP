@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.3.3] - 2026-03-30
+
+### Added
+
+- **Anteprima branding live**: mentre modifichi logo (URL/Media), dimensioni, accent, titolo header e footer, le due colonne anteprima si aggiornano via AJAX con la stessa logica di `BrandingService::wrap()` (senza salvare). Opzione `branding_override` su `wrap()` per anteprima dal form.
+
+### Changed
+
+- Testo nota sotto l’anteprima: chiarito che l’anteprima segue il form in tempo reale e che il salvataggio serve agli invii reali.
+
 ## [1.3.2] - 2026-03-24
 
 ### Fixed

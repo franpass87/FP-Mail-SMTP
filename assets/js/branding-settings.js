@@ -85,6 +85,7 @@
                 if (att.url) {
                     $urlInput.val(att.url);
                 }
+                $(document).trigger('fpmailBrandingFormChanged');
             });
             frame.open();
         });
@@ -94,11 +95,100 @@
             $idInput.val('0');
             $preview.empty().hide();
             $urlInput.val('');
+            $(document).trigger('fpmailBrandingFormChanged');
         });
+    }
+
+    /**
+     * Anteprima email: stessi valori del form, via AJAX (BrandingService + branding_override).
+     */
+    function initLiveBrandingPreview() {
+        var l10n = window.fpFpmailBranding || {};
+        var $light = $('#fpmail-email-preview-light');
+        var $dark = $('#fpmail-email-preview-dark');
+        if (!$light.length || !$dark.length || !l10n.previewNonce || !l10n.previewAction || !l10n.ajaxUrl) {
+            return;
+        }
+
+        var timer = null;
+        var previewReqId = 0;
+
+        function collectFormData() {
+            var fd = new FormData();
+            fd.append('action', l10n.previewAction);
+            fd.append('nonce', l10n.previewNonce);
+            fd.append('fp_fpmail_email_branding[logo_attachment_id]', $('#fp_fpmail_branding_logo_id').val() || '0');
+            fd.append('fp_fpmail_email_branding[logo]', $('#fp_fpmail_branding_logo').val() || '');
+            fd.append('fp_fpmail_email_branding[logo_width]', $('#fp_fpmail_branding_logo_w').val() || '0');
+            fd.append('fp_fpmail_email_branding[logo_height]', $('#fp_fpmail_branding_logo_h').val() || '0');
+            fd.append('fp_fpmail_email_branding[accent_color]', $('#fp_fpmail_branding_accent').val() || '');
+            fd.append('fp_fpmail_email_branding[header_text]', $('#fp_fpmail_branding_header').val() || '');
+            fd.append('fp_fpmail_email_branding[footer_text]', $('#fp_fpmail_branding_footer').val() || '');
+            return fd;
+        }
+
+        function run() {
+            var myId = ++previewReqId;
+            $light.addClass('fpmail-email-preview-shell--loading');
+            $dark.addClass('fpmail-email-preview-shell--loading');
+
+            fetch(l10n.ajaxUrl, {
+                method: 'POST',
+                body: collectFormData(),
+                credentials: 'same-origin'
+            })
+                .then(function (r) {
+                    return r.json();
+                })
+                .then(function (data) {
+                    if (myId !== previewReqId) {
+                        return;
+                    }
+                    if (data && data.success && data.data && data.data.light && data.data.dark) {
+                        $light.html(data.data.light);
+                        $dark.html(data.data.dark);
+                    } else if (l10n.previewError) {
+                        window.console.warn(l10n.previewError);
+                    }
+                })
+                .catch(function () {
+                    if (myId !== previewReqId) {
+                        return;
+                    }
+                    if (l10n.previewError) {
+                        window.console.warn(l10n.previewError);
+                    }
+                })
+                .finally(function () {
+                    if (myId === previewReqId) {
+                        $light.removeClass('fpmail-email-preview-shell--loading');
+                        $dark.removeClass('fpmail-email-preview-shell--loading');
+                    }
+                });
+        }
+
+        function schedule() {
+            clearTimeout(timer);
+            timer = setTimeout(run, 350);
+        }
+
+        var selectors = [
+            '#fp_fpmail_branding_logo',
+            '#fp_fpmail_branding_logo_w',
+            '#fp_fpmail_branding_logo_h',
+            '#fp_fpmail_branding_accent',
+            '#fp_fpmail_branding_accent_picker',
+            '#fp_fpmail_branding_header',
+            '#fp_fpmail_branding_footer'
+        ].join(', ');
+
+        $(document).on('input change', selectors, schedule);
+        $(document).on('fpmailBrandingFormChanged', schedule);
     }
 
     $(function () {
         initAccentSync();
         initLogoMedia();
+        initLiveBrandingPreview();
     });
 }(jQuery));
