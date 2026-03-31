@@ -213,6 +213,8 @@ final class LogPage
             wp_die(esc_html__('Record non trovato.', 'fp-fpmail'), '', ['response' => 404]);
         }
 
+        wp_enqueue_style('fp-fpmail-admin', FP_FPMAIL_URL . 'assets/css/admin.css', [], FP_FPMAIL_VERSION);
+
         $rowSource = $row['source'] ?? 'wp_mail';
         $brevoEvent = $row['brevo_event'] ?? '';
         $brevoMessageId = $row['brevo_message_id'] ?? '';
@@ -286,11 +288,47 @@ final class LogPage
                 </div>
             </div>
 
+            <?php
+            $previewUrl = add_query_arg(
+                [
+                    'action' => 'fp_fpmail_log_html',
+                    'id' => $id,
+                    'nonce' => wp_create_nonce(LogPreviewHandler::nonceAction()),
+                ],
+                admin_url('admin-ajax.php')
+            );
+            $hasStoredBody = isset($row['message_body']) && is_string($row['message_body']) && trim($row['message_body']) !== '';
+            ?>
+            <div class="fpmail-card">
+                <div class="fpmail-card-header">
+                    <div class="fpmail-card-header-left">
+                        <span class="dashicons dashicons-welcome-view-site"></span>
+                        <h2><?php esc_html_e('Anteprima messaggio', 'fp-fpmail'); ?></h2>
+                    </div>
+                </div>
+                <div class="fpmail-card-body fpmail-card-body--preview">
+                    <p class="description"><?php esc_html_e('Rendering HTML come in un client di posta (script disabilitati per sicurezza).', 'fp-fpmail'); ?></p>
+                    <?php if (!$hasStoredBody) : ?>
+                        <div class="notice notice-info inline">
+                            <p><?php esc_html_e('Per le email inviate prima di questo aggiornamento è disponibile solo il riepilogo testuale sotto.', 'fp-fpmail'); ?></p>
+                        </div>
+                    <?php endif; ?>
+                    <div class="fpmail-log-preview-frame-wrap">
+                        <iframe
+                            class="fpmail-log-html-preview"
+                            title="<?php echo esc_attr__('Anteprima email', 'fp-fpmail'); ?>"
+                            sandbox="allow-popups allow-popups-to-escape-sandbox"
+                            src="<?php echo esc_url($previewUrl); ?>"
+                        ></iframe>
+                    </div>
+                </div>
+            </div>
+
             <div class="fpmail-card">
                 <div class="fpmail-card-header">
                     <div class="fpmail-card-header-left">
                         <span class="dashicons dashicons-editor-alignleft"></span>
-                        <h2><?php esc_html_e('Corpo messaggio', 'fp-fpmail'); ?></h2>
+                        <h2><?php esc_html_e('Riepilogo testo (senza tag)', 'fp-fpmail'); ?></h2>
                     </div>
                 </div>
                 <div class="fpmail-card-body">

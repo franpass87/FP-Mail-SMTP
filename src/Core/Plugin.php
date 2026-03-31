@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace FP\Fpmail\Core;
 
 use FP\Fpmail\Admin\LogPage;
+use FP\Fpmail\Admin\LogPreviewHandler;
 use FP\Fpmail\Admin\SettingsPage;
 use FP\Fpmail\Api\BrevoWebhookController;
 use FP\Fpmail\Brevo\BrevoTransactionalSyncService;
@@ -108,6 +109,14 @@ final class Plugin
             }
             update_option($option, '1.1');
         }
+
+        if (version_compare($current, '1.2', '<')) {
+            $cols = $wpdb->get_col("SHOW COLUMNS FROM {$table} LIKE 'message_body'");
+            if (empty($cols)) {
+                $wpdb->query("ALTER TABLE {$table} ADD COLUMN message_body LONGTEXT NULL AFTER message_preview");
+            }
+            update_option($option, '1.2');
+        }
     }
 
     /**
@@ -190,6 +199,7 @@ final class Plugin
         (new BrandingService())->register();
         (new SmtpConfigurator())->register();
         (new MailLogger())->register();
+        (new LogPreviewHandler())->register();
     }
 
     /**

@@ -20,6 +20,9 @@ final class MailLogger
 {
     private const PREVIEW_LENGTH = 500;
 
+    /** Limite dimensione corpo HTML salvato (byte), per evitare righe enormi in DB. */
+    private const MAX_BODY_BYTES = 524288;
+
     /**
      * Registra gli hook.
      */
@@ -79,6 +82,10 @@ final class MailLogger
             ? str_replace(["\r", "\n"], '', sanitize_text_field((string) $mail_data['subject']))
             : '';
         $message = isset($mail_data['message']) ? (string) $mail_data['message'] : '';
+        $messageBody = $message;
+        if (strlen($messageBody) > self::MAX_BODY_BYTES) {
+            $messageBody = substr($messageBody, 0, self::MAX_BODY_BYTES);
+        }
         $messagePreview = sanitize_textarea_field(wp_strip_all_tags(mb_substr($message, 0, self::PREVIEW_LENGTH)));
 
         $headers = $mail_data['headers'] ?? [];
@@ -98,12 +105,13 @@ final class MailLogger
                 'from_email' => $fromEmail,
                 'subject' => mb_substr($subject, 0, 500),
                 'message_preview' => $messagePreview,
+                'message_body' => $messageBody,
                 'headers' => mb_substr($headersStr, 0, 4096),
                 'attachments_count' => $attachmentsCount,
                 'status' => $status === 'failed' ? 'failed' : 'sent',
                 'error_message' => sanitize_textarea_field($error_message),
             ],
-            ['%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s']
+            ['%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s']
         );
     }
 

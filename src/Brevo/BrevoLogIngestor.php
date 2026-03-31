@@ -174,6 +174,7 @@ final class BrevoLogIngestor
                 'from_email' => '',
                 'subject' => mb_substr($subject, 0, 500),
                 'message_preview' => '',
+                'message_body' => '',
                 'headers' => $mirrorLink !== '' && esc_url_raw($mirrorLink) === $mirrorLink
                     ? 'mirror_link: ' . esc_url_raw($mirrorLink)
                     : '',
@@ -185,7 +186,7 @@ final class BrevoLogIngestor
                 'brevo_message_id' => mb_substr($messageId, 0, 255),
                 'created_at' => $createdAt,
             ],
-            ['%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', '%s', '%s']
+            ['%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', '%s', '%s']
         );
     }
 

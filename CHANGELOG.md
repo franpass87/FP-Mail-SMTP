@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.4.0] - 2026-03-31
+
+### Added
+
+- **Log email — anteprima reale**: nel dettaglio di una voce, iframe che renderizza l’HTML completo inviato (come un client di posta). Il corpo viene salvato in `message_body` (fino a 512 KB); endpoint admin `admin-ajax.php?action=fp_fpmail_log_html` con nonce, CSP senza script.
+- Migrazione DB `1.2`: colonna `message_body` (LONGTEXT) su `fp_fpmail_logs`.
+
+### Changed
+
+- Dettaglio log: sezione “Riepilogo testo (senza tag)” per i primi 500 caratteri senza markup (comportamento precedente del campo `message_preview`).
+
 ## [1.3.3] - 2026-03-30
 
 ### Added
